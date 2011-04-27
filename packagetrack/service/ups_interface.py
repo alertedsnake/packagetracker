@@ -62,26 +62,47 @@ class UPSInterface(BaseInterface):
 
     def parse_response(self, raw):
         root = xml_to_dict(raw)['TrackResponse']
+
         response = root['Response']
         status_code = response['ResponseStatusCode']
         status_description = response['ResponseStatusDescription']
         # Check status code?
 
-        # Parse delivery date, status, and last update.
-        est_delivery_date = datetime.strptime(
-            root['Shipment']['ScheduledDeliveryDate'],
-            "%Y%m%d")
-
         package = root['Shipment']['Package']
         activity = package['Activity']
+        status = activity['Status']['StatusType']['Description']
+        status_code = activity['Status']['StatusType']['Code']
+
+
         last_update_date = datetime.strptime(activity['Date'], "%Y%m%d").date()
         last_update_time = datetime.strptime(activity['Time'], "%H%M%S").time()
         last_update = datetime.combine(last_update_date, last_update_time)
-        status = activity['Status']['StatusType']['Description']
 
-        return TrackingInfo(last_update=last_update,
-                            delivery_date=est_delivery_date,
-                            status=status)
+        # the last known location is interesting
+        loc = activity['ActivityLocation']['Address']
+        last_location = ','.join((loc['City'],
+                                  loc['StateProvinceCode'],
+                                  loc['CountryCode']))
+
+        # Delivery date is the last_update if delivered, otherwise
+        # the estimated delivery date
+        if status_code == 'D':
+            delivery_date = last_update
+
+        else:
+            delivery_date = datetime.strptime(
+                root['Shipment']['ScheduledDeliveryDate'], "%Y%m%d")
+
+        delivery_detail = None
+        if 'Description' in activity['ActivityLocation']:
+            delivery_detail = activity['ActivityLocation']['Description']
+
+        return TrackingInfo(last_update     = last_update,
+                            delivery_date   = delivery_date,
+                            status          = status,
+                            location        = last_location,
+                            delivery_detail = delivery_detail,
+                            )
 
     def track(self, tracking_number):
         "Track a UPS package by number. Returns just a delivery date."
