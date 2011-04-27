@@ -2,11 +2,11 @@ import urllib
 from datetime import datetime, date, time
 
 import packagetrack
-from .xml_dict import dict_to_xml, xml_to_dict
-from .data import TrackingInfo
+from ..xml_dict import dict_to_xml, xml_to_dict
+from ..data import TrackingInfo
+from ..service import BaseInterface
 
-
-class UPSInterface(object):
+class UPSInterface(BaseInterface):
     api_url = 'https://wwwcie.ups.com/ups.app/xml/Track'
 
     def __init__(self):
@@ -14,7 +14,7 @@ class UPSInterface(object):
 
     def identify(self, tracking_number):
         return tracking_number.startswith('1Z')
-    
+
     def validate(self, tracking_number):
         "Return True if this is a valid UPS tracking number."
         tracking_num = tracking_number[2:-1]
@@ -82,7 +82,7 @@ class UPSInterface(object):
         return TrackingInfo(last_update=last_update,
                             delivery_date=est_delivery_date,
                             status=status)
-        
+
     def track(self, tracking_number):
         "Track a UPS package by number. Returns just a delivery date."
         resp = self.send_request(tracking_number)

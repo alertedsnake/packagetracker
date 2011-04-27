@@ -1,4 +1,7 @@
-class USPSInterface(object):
+
+from ..service import BaseInterface
+
+class USPSInterface(BaseInterface):
 
     def identify(self, tracking_number):
         return (tracking_number.startswith('91') or

@@ -1,9 +1,9 @@
 import os.path
 from ConfigParser import ConfigParser
 
-from .ups import UPSInterface
-from .fedex import FedexInterface
-from .usps import USPSInterface
+from .service.fedex_interface import FedexInterface
+from .service.ups_interface   import UPSInterface
+from .service.usps_interface  import USPSInterface
 
 
 __version__ = '0.2'
@@ -44,7 +44,7 @@ class Package(object):
             if iface.identify(self.tracking_number):
                 self.shipper = shipper
                 break
-    
+
     def track(self):
         return get_interface(self.shipper).track(self.tracking_number)
 

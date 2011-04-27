@@ -6,3 +6,5 @@ cover/
 packagetrack.egg-info/
 build/
 dist/
+
+*.pyc
