@@ -13,7 +13,7 @@ class FedexInterface(BaseInterface):
         self.cfg = None
 
     def identify(self, tracking_number):
-        return len(tracking_number) in (12, 15)
+        return len(tracking_number) in (12, 15, 22)
 
     def track(self, tracking_number):
         track = FedexTrackRequest(self.get_cfg())
