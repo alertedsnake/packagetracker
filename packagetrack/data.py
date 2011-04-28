@@ -1,5 +1,5 @@
 
-class TrackingInfo(object):
+class TrackingInfo(dict):
     """Generic tracking information object returned by a tracking request"""
 
     def __init__(self, delivery_date, status, last_update, location=None, delivery_detail=None):
@@ -44,7 +44,7 @@ class TrackingInfo(object):
         return e
 
 
-class TrackingEvent(object):
+class TrackingEvent(dict):
     """An individual tracking event, i.e. a status change"""
 
     def __init__(self, date, location, detail):
@@ -54,5 +54,5 @@ class TrackingEvent(object):
 
     def __repr__(self):
         return ('<TrackingEvent(date=%r, location=%r, detail=%r)>' %
-                    (self.date, self.location, self.detail))
+                    (self.date.strftime("%Y-%m-%d %H:%M"), self.location, self.detail))
 
