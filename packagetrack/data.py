@@ -3,6 +3,7 @@ class TrackingInfo(dict):
     """Generic tracking information object returned by a tracking request"""
 
     def __init__(self, delivery_date, status, last_update, location=None, delivery_detail=None):
+
         self.events = []
 
         self.delivery_date = delivery_date
@@ -15,6 +16,11 @@ class TrackingInfo(dict):
         # if delivered, how so?
         self.delivery_detail = delivery_detail
 
+    def __getattr__(self, name):
+        return self[name]
+
+    def __setattr__(self, name, val):
+        self[name] = val
 
     def __repr__(self):
         # return slightly different info if it's delivered
@@ -51,6 +57,12 @@ class TrackingEvent(dict):
         self.date = date
         self.location = location
         self.detail = detail
+
+    def __getattr__(self, name):
+        return self[name]
+
+    def __setattr__(self, name, val):
+        self[name] = val
 
     def __repr__(self):
         return ('<TrackingEvent(date=%r, location=%r, detail=%r)>' %
