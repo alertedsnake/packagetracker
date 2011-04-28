@@ -83,6 +83,7 @@ class FedexInterface(BaseInterface):
                     location        = location,
                     delivery_date   = delivery_date,
                     delivery_detail = delivery_detail,
+                    service         = rsp.ServiceType,
                 )
 
         # now add the events
