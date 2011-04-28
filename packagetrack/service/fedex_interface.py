@@ -6,7 +6,7 @@ from fedex.services.track_service import FedexTrackRequest, FedexInvalidTracking
 
 import packagetrack
 from ..data import TrackingInfo
-from ..service import BaseInterface, TrackFailed
+from ..service import BaseInterface, TrackFailed, InvalidTrackingNumber
 
 class FedexInterface(BaseInterface):
 
