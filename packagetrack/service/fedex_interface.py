@@ -1,7 +1,8 @@
 from datetime import datetime, date, time
 
 from fedex.config import FedexConfig
-from fedex.services.track_service import FedexTrackRequest
+from fedex.base_service import FedexError
+from fedex.services.track_service import FedexTrackRequest, FedexInvalidTrackingNumber
 
 import packagetrack
 from ..data import TrackingInfo
@@ -13,16 +14,24 @@ class FedexInterface(BaseInterface):
         self.cfg = None
 
     def identify(self, tracking_number):
-        return len(tracking_number) in (12, 15, 22)
+        return len(tracking_number) in (12, 15, 20, 22)
 
     def track(self, tracking_number):
+        if not self.validate(tracking_number):
+            raise InvalidTrackingNumber()
+
         track = FedexTrackRequest(self._get_cfg())
 
         track.TrackPackageIdentifier.Type = 'TRACKING_NUMBER_OR_DOORTAG'
         track.TrackPackageIdentifier.Value = tracking_number
 
         # Fires off the request, sets the 'response' attribute on the object.
-        track.send_request()
+        try:
+            track.send_request()
+        except FedexInvalidTrackingNumber, e:
+            raise InvalidTrackingNumber(e)
+        except FedexError, e:
+            raise TrackFailed(e)
 
         # TODO: I haven't actually seen an unsuccessful query yet
         if track.response.HighestSeverity != "SUCCESS":
@@ -41,6 +50,8 @@ class FedexInterface(BaseInterface):
 
     def _parse_response(self, rsp):
         """Parse the track response and return a TrackingInfo object"""
+
+        print rsp
 
         # test status code, return actual delivery time if package
         # was delivered, otherwise estimated target time
@@ -125,4 +136,100 @@ class FedexInterface(BaseInterface):
 
         return self.cfg
 
+
+    def validate(self, tnum):
+        """Validate the tracking number"""
+
+        if len(tnum) == 12:
+            return self._validate_express(tnum)
+
+        elif (len(tnum) == 15):
+            return self._validate_ground96(tnum)
+
+        elif (len(tnum) == 22) and tnum.startswith('96'):
+            return self._validate_ground96(tnum)
+
+        elif (len(tnum) == 20) and tnum.startswith('00'):
+            return self._validate_ssc18(tnum)
+
+        return False
+
+
+    def _validate_ground96(self, tracking_number):
+        """Validates ground code 128 ("96") bar codes
+
+            15-digit form:
+
+                    019343586678996
+        shipper ID: -------
+        package ID:        -------
+        checksum:                 -
+
+                22-digit form:
+                    9611020019343586678996
+        UCC/EAN id: --
+        SCNC:         --
+        class of svc:   --
+        shipper ID:        -------
+        package ID:               -------
+        checksum:                        -
+
+        """
+
+        rev = tracking_number[::-1]
+
+        eventotal = 0
+        oddtotal = 0
+        for i in range(1,14):
+            if i % 2:
+                eventotal += int(rev[i])
+            else:
+                oddtotal += int(rev[i])
+
+        check = 10 - ((eventotal * 3 + oddtotal) % 10)
+
+        # compare with the checksum digit, which is the last digit
+        return check == int(tracking_number[-1:])
+
+    def _validate_ssc18(self, tracking_number):
+        """Validates SSC18 tracking numbers"""
+
+        rev = tracking_number[::-1]
+
+        eventotal = 0
+        oddtotal = 0
+        for i in range(1,18):
+            if i % 2:
+                eventotal += int(rev[i])
+            else:
+                oddtotal += int(rev[i])
+
+        check = 10 - ((eventotal * 3 + oddtotal) % 10)
+
+        # compare with the checksum digit, which is the last digit
+        return check == int(tracking_number[-1:])
+
+
+    def _validate_express(self, tracking_number):
+        """Validates Express tracking numbers"""
+
+        basenum = tracking_number[0:10]
+
+        sums = []
+        mult = 1
+        total = 0
+        for digit in basenum[::-1]:
+            sums.append(int(digit) * mult)
+            total = total + (int(digit) * mult)
+
+            if mult == 1: mult = 3
+            if mult == 3: mult = 7
+            if mult == 7: mult = 1
+
+        check = total % 11
+        if check == 10:
+            check = 0
+
+        # compare with the checksum digit, which is the last digit
+        return check == int(tracking_number[-1:])
 
