@@ -38,7 +38,7 @@ class UnsupportedShipper(Exception):
 class Package(object):
 
     def __init__(self, tracking_number):
-        self.tracking_number = tracking_number.upper()
+        self.tracking_number = tracking_number.upper().replace(' ', '')
         self.shipper = None
         for shipper, iface in _interfaces.iteritems():
             if iface.identify(self.tracking_number):
