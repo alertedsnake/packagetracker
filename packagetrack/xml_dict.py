@@ -45,20 +45,54 @@ def dict_to_doc(d, attrs=None):
     return doc
 
 
-def doc_to_dict(n):
-    first = n.childNodes[0]
-    if len(n.childNodes) == 1 and first.nodeName == '#text':
-        return first.data
-    else:
-        return dict((child.nodeName, doc_to_dict(child))
-                    for child in n.childNodes
-                    if (child.nodeName != '#text')
-                    or (child.data.strip() != ''))
-
-
 def dict_to_xml(d, attrs=None):
     return dict_to_doc(d, attrs).toxml()
 
-
 def xml_to_dict(s):
-    return doc_to_dict(parseString(s))
+    """Convert XML data to a Python dict"""
+    return nodeToDict(parseString(s))
+
+class NotTextNodeError: pass
+
+def getTextFromNode(node):
+    """
+    scans through all children of node and gathers the
+    text. if node has non-text child-nodes, then
+    NotTextNodeError is raised.
+    """
+    t = ""
+    for n in node.childNodes:
+        if n.nodeType == n.TEXT_NODE:
+            t += n.nodeValue
+        else:
+            raise NotTextNodeError
+    return t
+
+def nodeToDict(node):
+    """Convert a minidom node to dict"""
+    dic = {}
+    for n in node.childNodes:
+        if n.nodeType != n.ELEMENT_NODE:
+            continue
+
+        # we've seen this element before, so we make it a list
+        if n.nodeName in dic and type(dic[n.nodeName]) != list:
+            dic[n.nodeName] = [dic[n.nodeName]]
+
+        try:
+            text = getTextFromNode(n)
+        except NotTextNodeError:
+            if n.nodeName in dic and type(dic[n.nodeName]) == list:
+                dic[n.nodeName].append(nodeToDict(n))
+            else:
+                dic.update({n.nodeName:nodeToDict(n)})
+            continue
+
+        # text node
+        if n.nodeName in dic and type(dic[n.nodeName]) == list:
+            dic[n.nodeName].append(text)
+        else:
+            dic.update({n.nodeName:text})
+
+    return dic
+
