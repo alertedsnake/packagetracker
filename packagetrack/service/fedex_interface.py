@@ -13,8 +13,8 @@ class FedexInterface(BaseInterface):
     def __init__(self):
         self.cfg = None
 
-    def identify(self, tracking_number):
-        return len(tracking_number) in (12, 15, 20, 22)
+    def identify(self, num):
+        return num.isdigit() and (len(num) in (12, 15, 20, 22))
 
     def track(self, tracking_number):
         if not self.validate(tracking_number):
@@ -40,7 +40,7 @@ class FedexInterface(BaseInterface):
                     track.response.Notifications[0].LocalizedMessage
                     ))
 
-        return self._parse_response(track.response.TrackDetails[0])
+        return self._parse_response(track.response.TrackDetails[0], tracking_number)
 
 
     def url(self, tracking_number):
@@ -48,7 +48,7 @@ class FedexInterface(BaseInterface):
                 % tracking_number)
 
 
-    def _parse_response(self, rsp):
+    def _parse_response(self, rsp, tracking_number):
         """Parse the track response and return a TrackingInfo object"""
 
         # test status code, return actual delivery time if package
@@ -78,6 +78,7 @@ class FedexInterface(BaseInterface):
 
         # a new tracking info object
         trackinfo = TrackingInfo(
+                    tracking_number = tracking_number,
                     last_update     = last_update,
                     status          = rsp.StatusDescription,
                     location        = location,

@@ -2,10 +2,11 @@
 class TrackingInfo(dict):
     """Generic tracking information object returned by a tracking request"""
 
-    def __init__(self, delivery_date, status, last_update, location=None, delivery_detail=None, service=None):
+    def __init__(self, tracking_number, delivery_date, status, last_update, location=None, delivery_detail=None, service=None):
 
         self.events = []
 
+        self.tracking_number = tracking_number
         self.delivery_date = delivery_date
         self.status = status
         self.last_update = last_update

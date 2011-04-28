@@ -72,7 +72,7 @@ class UPSInterface(BaseInterface):
         webf.close()
         return resp
 
-    def _parse_response(self, raw):
+    def _parse_response(self, raw, tracking_number):
         root = xml_to_dict(raw)['TrackResponse']
 
         response = root['Response']
@@ -141,18 +141,18 @@ class UPSInterface(BaseInterface):
             delivery_detail = status
 
         trackinfo = TrackingInfo(
-                            last_update     = last_update,
-                            delivery_date   = delivery_date,
-                            status          = status,
-                            location        = last_location,
-                            delivery_detail = delivery_detail,
-                            service         = service_description,
-                            )
+            tracking_number = tracking_number,
+            last_update     = last_update,
+            delivery_date   = delivery_date,
+            status          = status,
+            location        = last_location,
+            delivery_detail = delivery_detail,
+            service         = service_description,
+            )
 
         # add a single event, UPS doesn't seem to support multiple?
 
         for e in package['Activity']:
-            # the last known location is interesting
             loc = e['ActivityLocation']['Address']
             location=None
             if 'City' in loc:
@@ -180,7 +180,7 @@ class UPSInterface(BaseInterface):
             raise InvalidTrackingNumber()
 
         resp = self._send_request(tracking_number)
-        return self._parse_response(resp)
+        return self._parse_response(resp, tracking_number)
 
     def url(self, tracking_number):
         "Return a tracking info detail URL by number."
