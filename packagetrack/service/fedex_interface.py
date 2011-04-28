@@ -55,7 +55,13 @@ class FedexInterface(BaseInterface):
         # was delivered, otherwise estimated target time
         if rsp.StatusCode == 'DL':
             delivery_date = rsp.ActualDeliveryTimestamp
-            delivery_detail = rsp.Events[0].StatusExceptionDescription
+
+            # this may not be present
+            try:
+                delivery_detail = rsp.Events[0].StatusExceptionDescription
+            except AttributeError:
+                delivery_detail = None
+
             last_update = delivery_date
             location = ','.join((
                                 rsp.ActualDeliveryAddress.City,
@@ -181,7 +187,7 @@ class FedexInterface(BaseInterface):
 
         eventotal = 0
         oddtotal = 0
-        for i in range(1,14):
+        for i in range(1,15):
             if i % 2:
                 eventotal += int(rev[i])
             else:
@@ -199,7 +205,7 @@ class FedexInterface(BaseInterface):
 
         eventotal = 0
         oddtotal = 0
-        for i in range(1,18):
+        for i in range(1,19):
             if i % 2:
                 eventotal += int(rev[i])
             else:
