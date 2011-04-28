@@ -4,7 +4,8 @@ packagetrack - Track UPS packages
 
 :Authors:
     Scott Torborg (storborg)
-:Version: 0.1
+    Michael Stella (alertedsnake)
+:Version: 0.3
 
 This library tracks packages.
 
@@ -43,16 +44,27 @@ IN TRANSIT TO
 http://wwwapps.ups.com/WebTracking/processInputRequest?TypeOfInquiryNumber=T&InquiryNumber1=1Z9999999999999999
 
 
-UPS API Configuration
+API Configuration
 =====================
 
-To enable UPS package tracking, get an account and an API license number on the
-UPS website, then make a file at ~/.packagetrack that looks like::
+To enable package tracking, get an account for each of the services you wish
+to use, and then make a file at ~/.packagetrack that looks like::
 
     [UPS]
     license_number = XXXXXXXXXXXXXXXX
     user_id = XXXX
     password = XXXX
+
+    [FedEx]
+    key = XXXXXXXXXXXXXXXX
+    password = XXXXXXXXXXXXXXXXXXXXXXXXX
+    account_number = #########
+    meter_number = #########
+
+    [USPS]
+    userid = XXXXXXXXXXXX
+    password = XXXXXXXXXXXX
+
 
 License
 =======
