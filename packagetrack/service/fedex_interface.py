@@ -16,7 +16,7 @@ class FedexInterface(BaseInterface):
         return len(tracking_number) in (12, 15, 22)
 
     def track(self, tracking_number):
-        track = FedexTrackRequest(self.get_cfg())
+        track = FedexTrackRequest(self._get_cfg())
 
         track.TrackPackageIdentifier.Type = 'TRACKING_NUMBER_OR_DOORTAG'
         track.TrackPackageIdentifier.Value = tracking_number
@@ -31,7 +31,7 @@ class FedexInterface(BaseInterface):
                     track.response.Notifications[0].LocalizedMessage
                     ))
 
-        return self.parse_response(track.response.TrackDetails[0])
+        return self._parse_response(track.response.TrackDetails[0])
 
 
     def url(self, tracking_number):
@@ -39,7 +39,7 @@ class FedexInterface(BaseInterface):
                 % tracking_number)
 
 
-    def parse_response(self, rsp):
+    def _parse_response(self, rsp):
         """Parse the track response and return a TrackingInfo object"""
 
         # test status code, return actual delivery time if package
@@ -56,22 +56,41 @@ class FedexInterface(BaseInterface):
         else:
             delivery_date = rsp.EstimatedDeliveryTimestamp
             last_update = rsp.Events[0].Timestamp
-            location = ','.join((
-                                rsp.Events[0].Address.City,
-                                rsp.Events[0].Address.StateOrProvinceCode,
-                                rsp.Events[0].Address.CountryCode,
-                            ))
+            location = self._getTrackingLocation(rsp.Events[0])
 
 
-        return TrackingInfo(
+        # a new tracking info object
+        trackinfo = TrackingInfo(
                     last_update     = last_update,
                     delivery_date   = delivery_date,
                     status          = rsp.StatusDescription,
                     location        = location,
                 )
 
+        # now add the events
+        for e in rsp.Events:
+            trackinfo.addEvent(
+                location = self._getTrackingLocation(e),
+                date     = e.Timestamp,
+                detail   = e.EventDescription,
+            )
 
-    def get_cfg(self):
+        return trackinfo
+
+
+    def _getTrackingLocation(self, e):
+        """Returns a nicely formatted location for a given event"""
+        try:
+            return ','.join((
+                            e.Address.City,
+                            e.Address.StateOrProvinceCode,
+                            e.Address.CountryCode,
+                        ))
+        except:
+            return None
+
+
+    def _get_cfg(self):
         """Makes and returns a FedexConfig object from the packagetrack
            configuration.  Caches it, so it doesn't create each time."""
 
@@ -105,4 +124,5 @@ class FedexInterface(BaseInterface):
                                             'use_test_server')
 
         return self.cfg
+
 
