@@ -51,8 +51,6 @@ class FedexInterface(BaseInterface):
     def _parse_response(self, rsp):
         """Parse the track response and return a TrackingInfo object"""
 
-        print rsp
-
         # test status code, return actual delivery time if package
         # was delivered, otherwise estimated target time
         if rsp.StatusCode == 'DL':
