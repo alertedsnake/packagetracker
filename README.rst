@@ -5,6 +5,7 @@ packagetrack - Track UPS packages
 :Authors:
     Scott Torborg (storborg)
     Michael Stella (alertedsnake)
+
 :Version: 0.3
 
 This library tracks packages.
@@ -64,6 +65,9 @@ to use, and then make a file at ~/.packagetrack that looks like::
     [USPS]
     userid = XXXXXXXXXXXX
     password = XXXXXXXXXXXX
+
+
+For USPS, the optional argument 'server' can be set to 'test' or 'production'.
 
 
 License
