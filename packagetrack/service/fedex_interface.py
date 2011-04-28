@@ -24,6 +24,7 @@ class FedexInterface(BaseInterface):
 
         track.TrackPackageIdentifier.Type = 'TRACKING_NUMBER_OR_DOORTAG'
         track.TrackPackageIdentifier.Value = tracking_number
+        track.IncludeDetailedScans = True
 
         # Fires off the request, sets the 'response' attribute on the object.
         try:
