@@ -55,6 +55,7 @@ class FedexInterface(BaseInterface):
         # was delivered, otherwise estimated target time
         if rsp.StatusCode == 'DL':
             delivery_date = rsp.ActualDeliveryTimestamp
+            delivery_detail = rsp.Events[0].StatusExceptionDescription
             last_update = delivery_date
             location = ','.join((
                                 rsp.ActualDeliveryAddress.City,
@@ -63,6 +64,7 @@ class FedexInterface(BaseInterface):
                             ))
 
         else:
+            delivery_detail = None
             delivery_date = rsp.EstimatedDeliveryTimestamp
             last_update = rsp.Events[0].Timestamp
             location = self._getTrackingLocation(rsp.Events[0])
@@ -71,9 +73,10 @@ class FedexInterface(BaseInterface):
         # a new tracking info object
         trackinfo = TrackingInfo(
                     last_update     = last_update,
-                    delivery_date   = delivery_date,
                     status          = rsp.StatusDescription,
                     location        = location,
+                    delivery_date   = delivery_date,
+                    delivery_detail = delivery_detail,
                 )
 
         # now add the events
