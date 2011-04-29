@@ -11,6 +11,7 @@ class USPSInterface(BaseInterface):
         'secure_test': 'https://secure.shippingapis.com/ShippingAPITest.dll?API=TrackV2&XML=',
         'test':        'http://testing.shippingapis.com/ShippingAPITest.dll?API=TrackV2&XML=',
         'production':  'http://production.shippingapis.com/ShippingAPI.dll?API=TrackV2&XML=',
+        'secure':      'https://secure.shippingapis.com/ShippingAPI.dll?API=TrackV2&XML=',
     }
 
     service_types = {
@@ -45,8 +46,14 @@ class USPSInterface(BaseInterface):
     def _parse_response(self, raw, tracking_number):
         rsp = xml_to_dict(raw)
 
+        # this is a system error
         if 'Error' in rsp:
             error = rsp['Error']['Description']
+            raise TrackFailed(error)
+
+        # this is a result with an error, like "no such package"
+        if 'Error' in rsp['TrackResponse']['TrackInfo']:
+            error = rsp['TrackResponse']['TrackInfo']['Error']['Description']
             raise TrackFailed(error)
 
         # make sure the events list is a list
