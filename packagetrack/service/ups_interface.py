@@ -115,11 +115,15 @@ class UPSInterface(BaseInterface):
             delivery_date = last_update
 
         else:
-            # the last known location is interesting
-            loc = activity['ActivityLocation']['Address']
-            last_location = ','.join((loc['City'],
-                                      loc['StateProvinceCode'],
-                                      loc['CountryCode']))
+            if status_code == 'M':
+                last_location = None
+
+            else:
+                # the last known location is interesting
+                loc = activity['ActivityLocation']['Address']
+                last_location = ','.join((loc['City'],
+                                          loc['StateProvinceCode'],
+                                          loc['CountryCode']))
 
             # Delivery date is the last_update if delivered, otherwise
             # the estimated delivery date
@@ -129,9 +133,11 @@ class UPSInterface(BaseInterface):
             elif 'RescheduledDeliveryDate' in package:
                 delivery_date = datetime.strptime(
                     package['RescheduledDeliveryDate'], "%Y%m%d")
-            else:
+            elif 'ScheduledDeliveryDate' in root['Shipment']:
                 delivery_date = datetime.strptime(
                     root['Shipment']['ScheduledDeliveryDate'], "%Y%m%d")
+            else:
+                delivery_date = None
 
 
         # Delivery detail may not always be available either
@@ -171,7 +177,6 @@ class UPSInterface(BaseInterface):
 
 
         return trackinfo
-
 
     def track(self, tracking_number):
         "Track a UPS package by number. Returns just a delivery date."

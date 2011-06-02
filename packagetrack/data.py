@@ -39,10 +39,14 @@ class TrackingInfo(dict):
                         )
                     )
         else:
+            ddate = None
+            if self.delivery_date:
+                ddate = self.delivery_date.strftime("%Y-%m-%d %H:%M")
+
             return ('<TrackingInfo(svc=%r, delivery_date=%r, status=%r, last_update=%r, location=%r)>' %
                         (
                             self.service,
-                            self.delivery_date.strftime("%Y-%m-%d %H:%M"),
+                            ddate,
                             self.status,
                             self.last_update.strftime("%Y-%m-%d %H:%M"),
                             self.location,
