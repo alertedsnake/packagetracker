@@ -72,7 +72,10 @@ class FedexInterface(BaseInterface):
 
         else:
             delivery_detail = None
-            delivery_date = rsp.EstimatedDeliveryTimestamp
+            try:
+                delivery_date = rsp.EstimatedDeliveryTimestamp
+            except AttributeError:
+                delivery_date = None
             last_update = rsp.Events[0].Timestamp
             location = self._getTrackingLocation(rsp.Events[0])
 
