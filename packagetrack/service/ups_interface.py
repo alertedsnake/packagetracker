@@ -33,7 +33,10 @@ class UPSInterface(BaseInterface):
 
         total = odd_total + even_total * 2
         check = ((total - (total % 10) + 10) - total) % 10
-        return (check == int(tracking_number[-1:]))
+        try:
+            return (check == int(tracking_number[-1:]))
+        except ValueError:
+            return False
 
     def _build_access_request(self):
         config = packagetrack.config
