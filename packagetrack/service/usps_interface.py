@@ -24,11 +24,20 @@ class USPSInterface(BaseInterface):
     }
 
     def identify(self, num):
+        ##
+        ## Apparently USPS uses 22-digit numbers for the *not-trackable*
+        ## delivery confirmation numbers.
+        ##
+        ## Actual trackable numbers are 13-characters.
+        ##
         return (
-            len(num) == 13 and
-            num[0:2].isalpha() and
-            num[2:9].isdigit() and
-            num[11:13].isalpha()
+            ( num.isdigit() and len(num) == 22 )
+            or (
+                len(num) == 13 and
+                num[0:2].isalpha() and
+                num[2:9].isdigit() and
+                num[11:13].isalpha()
+            )
         )
 
 
@@ -57,9 +66,12 @@ class USPSInterface(BaseInterface):
             raise TrackFailed(error)
 
         # make sure the events list is a list
-        events = rsp['TrackResponse']['TrackInfo']['TrackDetail']
-        if type(events) != list:
-            events = [events]
+        # note that sometimes there's no TrackDetail
+        events = []
+        if 'TrackDetail' in rsp['TrackResponse']['TrackInfo']:
+            events = rsp['TrackResponse']['TrackInfo']['TrackDetail']
+            if type(events) != list:
+                events = [events]
 
         summary = rsp['TrackResponse']['TrackInfo']['TrackSummary']
         last_update = self._getTrackingDate(summary)
@@ -143,6 +155,11 @@ class USPSInterface(BaseInterface):
     def _getTrackingDate(self, node):
         """Returns a datetime object for the given node's
         <EventTime> and <EventDate> elements"""
+
+        # in some cases, there's no time, like in
+        # "shipping info received"
+        if not node['EventTime']:
+            return datetime.strptime(node['EventDate'], '%B %d, %Y').date()
 
         return datetime.combine(
                     datetime.strptime(node['EventDate'], '%B %d, %Y').date(),
