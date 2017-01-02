@@ -29,9 +29,9 @@ class FedexInterface(BaseInterface):
         # Fires off the request, sets the 'response' attribute on the object.
         try:
             track.send_request()
-        except FedexInvalidTrackingNumber, e:
+        except FedexInvalidTrackingNumber as e:
             raise InvalidTrackingNumber(e)
-        except FedexError, e:
+        except FedexError as e:
             raise TrackFailed(e)
 
         # TODO: I haven't actually seen an unsuccessful query yet
