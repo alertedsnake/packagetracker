@@ -64,7 +64,7 @@ __credits__     = ['Scott Torborg','Michael Stella']
 __license__     = 'GPL'
 __maintainer__  = 'Scott Torborg'
 __status__      = 'Development'
-__version__     = '0.3'
+__version__     = '0.3.1'
 
 _interfaces = {}
 
