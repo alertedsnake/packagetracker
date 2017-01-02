@@ -24,6 +24,9 @@ setup(name='packagetrack',
       url="http://github.com/storborg/packagetrack",
       description='Track packages.',
       packages=find_packages(exclude=['ez_setup', 'tests']),
+      install_requires=[
+          'fedex'
+      ],
       long_description=read('README.rst'),
       test_suite='nose.collector',
       zip_safe=False,
