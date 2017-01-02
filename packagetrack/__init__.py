@@ -48,7 +48,12 @@ The default location for this file is ~/.packagetrack.
 
 """
 import os.path
-from ConfigParser import ConfigParser
+import sys
+
+if sys.version_info >= (3, 0):
+    from configparser import ConfigParser
+else:
+    from ConfigParser import ConfigParser
 
 from .service.fedex_interface import FedexInterface
 from .service.ups_interface   import UPSInterface
@@ -59,7 +64,7 @@ __credits__     = ['Scott Torborg','Michael Stella']
 __license__     = 'GPL'
 __maintainer__  = 'Scott Torborg'
 __status__      = 'Development'
-__version__     = '0.3'
+__version__     = '0.3.1'
 
 _interfaces = {}
 
@@ -108,7 +113,7 @@ class Package(object):
 
         self.tracking_number = tracking_number.upper().replace(' ', '')
         self.shipper = None
-        for shipper, iface in _interfaces.iteritems():
+        for shipper, iface in _interfaces.items():
             if iface.identify(self.tracking_number):
                 self.shipper = shipper
                 break
