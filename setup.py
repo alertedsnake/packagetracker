@@ -1,20 +1,13 @@
-import os.path
-
-try:
-    from setuptools import setup, find_packages
-except ImportError:
-    from ez_setup import use_setuptools
-    use_setuptools()
-    from setuptools import setup, find_packages
+import os
+import packagetrack
+from setuptools import setup, find_packages
 
 
 def read(fname):
-    return open(os.path.join(os.path.dirname(__file__), fname)).read()
+    with open(os.path.join(os.path.dirname(__file__), fname), 'r') as f:
+        return f.read()
 
 
-import packagetrack
-
-           
 setup(name='packagetrack',
       version=packagetrack.__version__,
       author="Scott Torborg",
@@ -23,7 +16,7 @@ setup(name='packagetrack',
       keywords="track packages ups fedex usps shipping",
       url="http://github.com/storborg/packagetrack",
       description='Track packages.',
-      packages=find_packages(exclude=['ez_setup', 'tests']),
+      packages=find_packages(exclude=['tests']),
       install_requires=[
           'fedex'
       ],

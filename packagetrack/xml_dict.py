@@ -48,11 +48,15 @@ def dict_to_doc(d, attrs=None):
 def dict_to_xml(d, attrs=None):
     return dict_to_doc(d, attrs).toxml()
 
+
 def xml_to_dict(s):
     """Convert XML data to a Python dict"""
     return nodeToDict(parseString(s))
 
-class NotTextNodeError: pass
+
+class NotTextNodeError(Exception):
+    pass
+
 
 def getTextFromNode(node):
     """
@@ -67,6 +71,7 @@ def getTextFromNode(node):
         else:
             raise NotTextNodeError
     return t
+
 
 def nodeToDict(node):
     """Convert a minidom node to dict"""
@@ -85,14 +90,14 @@ def nodeToDict(node):
             if n.nodeName in dic and type(dic[n.nodeName]) == list:
                 dic[n.nodeName].append(nodeToDict(n))
             else:
-                dic.update({n.nodeName:nodeToDict(n)})
+                dic.update({n.nodeName: nodeToDict(n)})
             continue
 
         # text node
         if n.nodeName in dic and type(dic[n.nodeName]) == list:
             dic[n.nodeName].append(text)
         else:
-            dic.update({n.nodeName:text})
+            dic.update({n.nodeName: text})
 
     return dic
 

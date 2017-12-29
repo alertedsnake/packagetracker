@@ -6,6 +6,7 @@ from ..data import TrackingInfo
 from ..service import BaseInterface, TrackFailed
 from ..xml_dict import xml_to_dict
 
+
 class USPSInterface(BaseInterface):
     api_url = {
         'secure_test': 'https://secure.shippingapis.com/ShippingAPITest.dll?API=TrackV2&XML=',
@@ -20,7 +21,7 @@ class USPSInterface(BaseInterface):
         'CP': 'priority mail international',
         'RA': 'registered mail',
         'RF': 'registered foreign',
-#        'EJ': 'something?',
+        #'EJ': 'something?',
     }
 
     def identify(self, num):
@@ -31,8 +32,8 @@ class USPSInterface(BaseInterface):
         ## Actual trackable numbers are 13-characters.
         ##
         return (
-            ( num.isdigit() and len(num) == 22 )
-            or (
+            (num.isdigit() and len(num) == 22) or
+            (
                 len(num) == 13 and
                 num[0:2].isalpha() and
                 num[2:9].isdigit() and
@@ -92,7 +93,7 @@ class USPSInterface(BaseInterface):
                             location        = last_location,
                             delivery_detail = None,
                             service         = service_description,
-                            )
+                    )
 
         # add the last event if delivered, USPS doesn't duplicate
         # the final event in the event log, but we want it there
@@ -104,9 +105,6 @@ class USPSInterface(BaseInterface):
             )
 
         for e in events:
-            location = self._getTrackingLocation(e)
-            location = self._getTrackingLocation(e)
-
             trackinfo.addEvent(
                 location = self._getTrackingLocation(e),
                 date     = self._getTrackingDate(e),
@@ -120,7 +118,7 @@ class USPSInterface(BaseInterface):
 
         # pick the USPS API server
         if config.has_option('USPS', 'server'):
-            server_type = config.get('USPS','server')
+            server_type = config.get('USPS', 'server')
         else:
             server_type = 'production'
 
@@ -174,5 +172,5 @@ class USPSInterface(BaseInterface):
                 node['EventCity'],
                 node['EventState'],
                 node['EventCountry'] or 'US'
-            ))
+        ))
 

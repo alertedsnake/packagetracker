@@ -1,10 +1,11 @@
 import urllib
-from datetime import datetime, date, time
+from datetime import datetime
 
 import packagetrack
 from ..xml_dict import dict_to_xml, xml_to_dict
 from ..data import TrackingInfo
-from ..service import BaseInterface, TrackFailed, InvalidTrackingNumber
+from ..service import BaseInterface, InvalidTrackingNumber
+
 
 class UPSInterface(BaseInterface):
     api_url = 'https://wwwcie.ups.com/ups.app/xml/Track'
@@ -80,8 +81,8 @@ class UPSInterface(BaseInterface):
 
         response = root['Response']
         status_code = response['ResponseStatusCode']
-        status_description = response['ResponseStatusDescription']
         # Check status code?
+        #status_description = response['ResponseStatusDescription']
 
         # we need the service code, some things are treated differently
         service_code = root['Shipment']['Service']['Code']
@@ -157,13 +158,13 @@ class UPSInterface(BaseInterface):
             location        = last_location,
             delivery_detail = delivery_detail,
             service         = service_description,
-            )
+        )
 
         # add a single event, UPS doesn't seem to support multiple?
 
         for e in package['Activity']:
             loc = e['ActivityLocation']['Address']
-            location=None
+            location = None
             if 'City' in loc:
                 location = ','.join((loc['City'],
                                      loc['StateProvinceCode'],

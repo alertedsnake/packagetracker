@@ -30,28 +30,26 @@ class TrackingInfo(dict):
         # return slightly different info if it's delivered
         if self.status == 'DELIVERED':
             return ('<TrackingInfo(svc=%r, delivery_date=%r, status=%r, location=%r, detail=%r)>' %
-                        (
-                            self.service,
-                            self.delivery_date.strftime("%Y-%m-%d %H:%M"),
-                            self.status,
-                            self.location,
-                            self.delivery_detail,
-                        )
-                    )
+                    (
+                        self.service,
+                        self.delivery_date.strftime("%Y-%m-%d %H:%M"),
+                        self.status,
+                        self.location,
+                        self.delivery_detail,
+                    ))
         else:
             ddate = None
             if self.delivery_date:
                 ddate = self.delivery_date.strftime("%Y-%m-%d %H:%M")
 
             return ('<TrackingInfo(svc=%r, delivery_date=%r, status=%r, last_update=%r, location=%r)>' %
-                        (
-                            self.service,
-                            ddate,
-                            self.status,
-                            self.last_update.strftime("%Y-%m-%d %H:%M"),
-                            self.location,
-                        )
-                    )
+                    (
+                        self.service,
+                        ddate,
+                        self.status,
+                        self.last_update.strftime("%Y-%m-%d %H:%M"),
+                        self.location,
+                    ))
 
 
     def addEvent(self, date, location, detail):
@@ -76,5 +74,5 @@ class TrackingEvent(dict):
 
     def __repr__(self):
         return ('<TrackingEvent(date=%r, location=%r, detail=%r)>' %
-                    (self.date.strftime("%Y-%m-%d %H:%M"), self.location, self.detail))
+                (self.date.strftime("%Y-%m-%d %H:%M"), self.location, self.detail))
 

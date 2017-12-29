@@ -12,10 +12,16 @@ test_xml = '''<?xml version="1.0"?>
   <goodbye>no</goodbye>
 </foo>'''
 
-test_dict = {'foo': {'bar': {'baz': 'what',
-                     'quux': 'hello'},
-             'sup': 'yeah',
-             'goodbye': 'no'}}
+test_dict = {
+    'foo': {
+        'bar': {
+            'baz': 'what',
+            'quux': 'hello',
+        },
+        'sup': 'yeah',
+        'goodbye': 'no',
+    }
+}
 
 
 class TestXMLDict(TestCase):

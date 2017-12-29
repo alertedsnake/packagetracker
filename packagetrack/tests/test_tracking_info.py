@@ -17,4 +17,3 @@ class TestTrackingInfo(TestCase):
         assert repr(today) in s
         assert 'IN TRANSIT' in s
 
-        

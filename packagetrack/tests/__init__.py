@@ -3,7 +3,7 @@ from unittest import TestCase
 from nose.plugins.skip import SkipTest
 
 import packagetrack
-from packagetrack import Package, UnsupportedShipper
+from packagetrack import Package, UnsupportedShipper, linkify_tracking_number
 
 
 class TestPackageTrack(TestCase):
@@ -65,7 +65,7 @@ class TestPackageTrack(TestCase):
         assert not Package('9405503699300451134169').validate()
 
     def test_identify_unknown(self):
-        assert Package('14324423523').shipper == None
+        assert Package('14324423523').shipper is None
 
     def test_track_unknown(self):
         try:

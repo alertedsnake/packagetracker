@@ -1,4 +1,3 @@
-from datetime import datetime, date, time
 
 from fedex.config import FedexConfig
 from fedex.base_service import FedexError
@@ -7,6 +6,7 @@ from fedex.services.track_service import FedexTrackRequest, FedexInvalidTracking
 import packagetrack
 from ..data import TrackingInfo
 from ..service import BaseInterface, TrackFailed, InvalidTrackingNumber
+
 
 class FedexInterface(BaseInterface):
 
@@ -39,14 +39,13 @@ class FedexInterface(BaseInterface):
             raise TrackFailed("%d: %s" % (
                     track.response.Notifications[0].Code,
                     track.response.Notifications[0].LocalizedMessage
-                    ))
+            ))
 
         return self._parse_response(track.response.TrackDetails[0], tracking_number)
 
 
     def url(self, tracking_number):
-        return ('http://www.fedex.com/Tracking?tracknumbers=%s'
-                % tracking_number)
+        return ('http://www.fedex.com/Tracking?tracknumbers=%s' % tracking_number)
 
 
     def _parse_response(self, rsp, tracking_number):
@@ -68,7 +67,7 @@ class FedexInterface(BaseInterface):
                                 rsp.ActualDeliveryAddress.City,
                                 rsp.ActualDeliveryAddress.StateOrProvinceCode,
                                 rsp.ActualDeliveryAddress.CountryCode,
-                            ))
+                                ))
 
         else:
             delivery_detail = None
@@ -109,7 +108,7 @@ class FedexInterface(BaseInterface):
                             e.Address.City,
                             e.Address.StateOrProvinceCode,
                             e.Address.CountryCode,
-                        ))
+                            ))
         except:
             return None
 
@@ -136,16 +135,13 @@ class FedexInterface(BaseInterface):
         # these are optional, and afaik, not really used for tracking
         # at all, but you can still set them, so....
         if config.has_option('FedEx', 'express_region_code'):
-            self.cfg.express_region_code = config.get('FedEx',
-                                            'express_region_code')
+            self.cfg.express_region_code = config.get('FedEx', 'express_region_code')
 
         if config.has_option('FedEx', 'integrator_id'):
-            self.cfg.integrator_id = config.get('FedEx',
-                                            'integrator_id')
+            self.cfg.integrator_id = config.get('FedEx', 'integrator_id')
 
         if config.has_option('FedEx', 'use_test_server'):
-            self.cfg.use_test_server = config.getboolean('FedEx',
-                                            'use_test_server')
+            self.cfg.use_test_server = config.getboolean('FedEx', 'use_test_server')
 
         return self.cfg
 
@@ -193,7 +189,7 @@ class FedexInterface(BaseInterface):
 
         eventotal = 0
         oddtotal = 0
-        for i in range(1,15):
+        for i in range(1, 15):
             if i % 2:
                 eventotal += int(rev[i])
             else:
@@ -211,7 +207,7 @@ class FedexInterface(BaseInterface):
 
         eventotal = 0
         oddtotal = 0
-        for i in range(1,19):
+        for i in range(1, 19):
             if i % 2:
                 eventotal += int(rev[i])
             else:
@@ -235,9 +231,12 @@ class FedexInterface(BaseInterface):
             sums.append(int(digit) * mult)
             total = total + (int(digit) * mult)
 
-            if mult == 1: mult = 3
-            if mult == 3: mult = 7
-            if mult == 7: mult = 1
+            if mult == 1:
+                mult = 3
+            if mult == 3:
+                mult = 7
+            if mult == 7:
+                mult = 1
 
         check = total % 11
         if check == 10:

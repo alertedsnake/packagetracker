@@ -25,7 +25,7 @@ Basic usage:
 Configuration:
 
 To enable package tracking, you will need to obtain an API account for
-each of the services you wish to use, and then make a config file 
+each of the services you wish to use, and then make a config file
 that looks like:
 
     [UPS]
@@ -50,17 +50,18 @@ The default location for this file is ~/.packagetrack.
 import os.path
 import sys
 
+from .service.fedex_interface import FedexInterface
+from .service.ups_interface   import UPSInterface
+from .service.usps_interface  import USPSInterface
+
 if sys.version_info >= (3, 0):
     from configparser import ConfigParser
 else:
     from ConfigParser import ConfigParser
 
-from .service.fedex_interface import FedexInterface
-from .service.ups_interface   import UPSInterface
-from .service.usps_interface  import USPSInterface
 
 __authors__     = 'Scott Torborg, Michael Stella'
-__credits__     = ['Scott Torborg','Michael Stella']
+__credits__     = ['Scott Torborg', 'Michael Stella']
 __license__     = 'GPL'
 __maintainer__  = 'Scott Torborg'
 __status__      = 'Development'
