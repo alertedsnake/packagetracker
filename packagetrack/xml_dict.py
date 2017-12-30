@@ -26,10 +26,10 @@ from xml.dom.minidom import getDOMImplementation, parseString
 def dict_to_doc(d, attrs=None):
     assert len(d) == 1
     impl = getDOMImplementation()
-    doc = impl.createDocument(None, d.keys()[0], None)
+    doc = impl.createDocument(None, list(d.keys())[0], None)
 
     def dict_to_nodelist(d, parent):
-        for key, child in d.iteritems():
+        for key, child in d.items():
             new = doc.createElement(key)
             parent.appendChild(new)
             if type(child) == dict:
@@ -38,10 +38,10 @@ def dict_to_doc(d, attrs=None):
                 new.appendChild(doc.createTextNode(child))
 
     if attrs:
-        for key, val in attrs.iteritems():
+        for key, val in attrs.items():
             doc.documentElement.setAttribute(key, val)
 
-    dict_to_nodelist(d.values()[0], doc.documentElement)
+    dict_to_nodelist(list(d.values())[0], doc.documentElement)
     return doc
 
 

@@ -8,22 +8,29 @@ def read(fname):
         return f.read()
 
 
-setup(name='packagetrack',
-      version=packagetrack.__version__,
-      author="Scott Torborg",
-      author_email="storborg@mit.edu",
-      license="GPL",
-      keywords="track packages ups fedex usps shipping",
-      url="http://github.com/storborg/packagetrack",
-      description='Track packages.',
-      packages=find_packages(exclude=['tests']),
-      install_requires=[
-          'fedex'
-      ],
-      long_description=read('README.rst'),
-      test_suite='nose.collector',
-      zip_safe=False,
-      classifiers=[
+requirements = [
+    'fedex',
+    'requests',
+]
+
+setup(
+    name='packagetrack',
+    version=packagetrack.__version__,
+    author="Scott Torborg",
+    author_email="storborg@mit.edu",
+    license="GPL",
+    keywords="track packages ups fedex usps shipping",
+    url="http://github.com/storborg/packagetrack",
+    description='Track packages.',
+    packages=find_packages(exclude=['tests']),
+    install_requires=requirements,
+    tests_require=requirements + [
+        'nose',
+    ],
+    long_description=read('README.rst'),
+    test_suite='nose.collector',
+    zip_safe=False,
+    classifiers=[
           "Development Status :: 3 - Alpha",
           "License :: OSI Approved :: GNU General Public License (GPL)",
           "Intended Audience :: Developers",

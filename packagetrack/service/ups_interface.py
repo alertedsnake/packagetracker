@@ -1,20 +1,27 @@
-import urllib
+
+import requests
+import json
 from datetime import datetime
 
-import packagetrack
-from ..xml_dict import dict_to_xml, xml_to_dict
 from ..data import TrackingInfo
-from ..service import BaseInterface, InvalidTrackingNumber
+from ..service import BaseInterface, InvalidTrackingNumber, TrackFailed
+
+TEST_URL = 'https://wwwcie.ups.com/rest/Track'
+API_URL = 'https://onlinetools.ups.com/rest/Track'
 
 
 class UPSInterface(BaseInterface):
-    api_url = 'https://wwwcie.ups.com/ups.app/xml/Track'
 
-    def __init__(self):
-        self.attrs = {'xml:lang': 'en-US'}
+    @property
+    def api_url(self):
+        if self.testing:
+            return TEST_URL
+        return API_URL
+
 
     def identify(self, tracking_number):
         return tracking_number.startswith('1Z')
+
 
     def validate(self, tracking_number):
         "Return True if this is a valid UPS tracking number."
@@ -39,53 +46,61 @@ class UPSInterface(BaseInterface):
         except ValueError:
             return False
 
+
     def _build_access_request(self):
-        config = packagetrack.config
-        d = {
-            'AccessRequest': {
-                'AccessLicenseNumber': config.get('UPS', 'license_number'),
-                'UserId': config.get('UPS', 'user_id'),
-                'Password': config.get('UPS', 'password')
-            }
+        return {
+            'UsernameToken': {
+                'Username': self.config.get('UPS', 'user_id'),
+                'Password': self.config.get('UPS', 'password'),
+            },
+            'AccessLicenseNumber': self.config.get('UPS', 'license_number'),
         }
-        return dict_to_xml(d, self.attrs)
+
 
     def _build_track_request(self, tracking_number):
-        req = {
-            'TransactionReference': {
-                'RequestAction': 'Track',
+        return {
+            'Request': {
+                'TransactionReference': {
+                    'CustomerContext': 'track request',
+                },
+                'RequestOption': '1',
             },
-            'RequestOption': '1',
+            'InquiryNumber': tracking_number
         }
-        d = {
-            'TrackRequest': {
-                'Request': req,
-                'TrackingNumber': tracking_number
-            }
-        }
-        return dict_to_xml(d)
+
 
     def _build_request(self, tracking_number):
-        return (self._build_access_request() +
-                self._build_track_request(tracking_number))
+        return {
+            'UPSSecurity': self._build_access_request(),
+            'TrackRequest': self._build_track_request(tracking_number),
+        }
+
 
     def _send_request(self, tracking_number):
         body = self._build_request(tracking_number)
-        webf = urllib.urlopen(self.api_url, body)
-        resp = webf.read()
-        webf.close()
-        return resp
+        print(json.dumps(body, indent=2))
 
-    def _parse_response(self, raw, tracking_number):
-        root = xml_to_dict(raw)['TrackResponse']
+        resp = requests.post(self.api_url, data=json.dumps(body))
+        print(resp.text)
+        data = resp.json()
+
+        # check for fatal errors now
+        if 'Fault' in data:
+            raise TrackFailed(data['Fault']['detail']['Errors']['ErrorDetail']['PrimaryErrorCode']['Description'])
+
+        return data
+
+
+    def _parse_response(self, rsp, tracking_number):
+        root = rsp['TrackResponse']
 
         response = root['Response']
-        status_code = response['ResponseStatusCode']
-        # Check status code?
-        #status_description = response['ResponseStatusDescription']
+        status_code = int(response['ResponseStatus']['Code'])
+        if status_code != 1:
+            raise TrackFailed(response['ResponseStatus']['Description'])
 
         # we need the service code, some things are treated differently
-        service_code = root['Shipment']['Service']['Code']
+        service_code = root['Shipment']['ShipmentType']['Code']
         service_description = 'UPS %s' % root['Shipment']['Service']['Description']
 
         package = root['Shipment']['Package']
@@ -98,8 +113,8 @@ class UPSInterface(BaseInterface):
         activity = package['Activity'][0]
 
         # here's the status code, inside the Activity block
-        status = activity['Status']['StatusType']['Description']
-        status_code = activity['Status']['StatusType']['Code']
+        status = activity['Status']['Description']
+        status_code = activity['Status']['Code']
 
         last_update_date = datetime.strptime(activity['Date'], "%Y%m%d").date()
         last_update_time = datetime.strptime(activity['Time'], "%H%M%S").time()
@@ -175,7 +190,7 @@ class UPSInterface(BaseInterface):
             timestamp = datetime.combine(edate, etime)
             trackinfo.addEvent(
                 location = location,
-                detail = e['Status']['StatusType']['Description'],
+                detail = e['Status']['Description'],
                 date = timestamp,
             )
 

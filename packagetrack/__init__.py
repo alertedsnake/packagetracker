@@ -47,6 +47,7 @@ that looks like:
 The default location for this file is ~/.packagetrack.
 
 """
+import logging
 import os.path
 import sys
 
@@ -69,70 +70,104 @@ __version__     = '0.3.1'
 
 _interfaces = {}
 
-config = ConfigParser()
-
-
-def register_interface(shipper, interface):
-    global _interfaces
-    _interfaces[shipper] = interface
-
-
-def get_interface(shipper):
-        if shipper in _interfaces:
-            return _interfaces[shipper]
-        else:
-            raise UnsupportedShipper
-
-
-register_interface('UPS', UPSInterface())
-register_interface('FedEx', FedexInterface())
-register_interface('USPS', USPSInterface())
+log = logging.getLogger()
 
 
 class UnsupportedShipper(Exception):
     pass
 
 
+class PackageTracker(object):
+
+    def __init__(self, config_file='~/.config/packagetrack', testing=False):
+        self.config_file = os.path.expanduser(config_file)
+        if not os.path.exists(self.config_file):
+            raise IOError("Config file does not exist - create one?")
+
+        self.config = ConfigParser()
+        self.config.read(self.config_file)
+        self._interfaces = {}
+
+        self.register_interface('UPS', UPSInterface(config=self.config, testing=testing))
+        self.register_interface('USPS', USPSInterface(config=self.config, testing=testing))
+        self.register_interface('FedEx', FedexInterface(config=self.config, testing=testing))
+
+
+    def register_interface(self, shipper, interface):
+        """
+        Args:
+            shipper (str): Shipper short name
+            interface (obj): subclass of BaseInterface
+        """
+
+        log.debug("Registered interface {}".format(shipper))
+        self._interfaces[shipper] = interface
+
+
+    def package(self, tracking_number):
+        """
+        Returns a Package given the tracking number.
+
+        Args:
+            tracking_number (str)
+
+        Returns:
+            Package
+        """
+
+        return Package(self, tracking_number)
+
+
+    @property
+    def interfaces(self):
+        return self._interfaces.items()
+
+    def interface(self, key):
+        return self._interfaces.get(key)
+
+
 class Package(object):
     """A package to be tracked."""
 
-    def __init__(self, tracking_number, configfile=None):
+    def __init__(self, parent, tracking_number):
         """
-            Options:
-                tracking_number - required
-                configfile - optional path to a config file, see docs.
+        Args:
+            tracking_number (str): number to track
+            configfile (str): path to a config file, see docs.
         """
-
-        # allow the user to specify an alternate config file
-        if not configfile:
-            configfile = os.path.expanduser('~/.packagetrack')
-
-        if not os.path.exists(configfile):
-            raise IOError("Config file does not exist - create one?")
-
-        config.read([configfile])
-
+        self.config = parent.config
         self.tracking_number = tracking_number.upper().replace(' ', '')
         self.shipper = None
-        for shipper, iface in _interfaces.items():
+        self.iface = None
+
+        for shipper, iface in parent.interfaces:
+            log.debug("{}: Testing shipper {}".format(tracking_number, shipper))
+
             if iface.identify(self.tracking_number):
                 self.shipper = shipper
+                self.iface = iface
                 break
+
+        if not self.iface or not self.shipper:
+            raise UnsupportedShipper()
+
+        log.debug("{}: shipper is {}".format(tracking_number, shipper))
+
 
     def track(self):
         """Tracks the package, returning a TrackingInfo object"""
+        return self.iface.track(self.tracking_number)
 
-        return get_interface(self.shipper).track(self.tracking_number)
 
     def url(self):
         """Returns a URL that can be used to go to the shipper's
         tracking website, to track this package."""
+        return self.iface.url(self.tracking_number)
 
-        return get_interface(self.shipper).url(self.tracking_number)
 
     def validate(self):
         """Validates this package's tracking number, returns true or false"""
-        return get_interface(self.shipper).validate(self.tracking_number)
+        return self.iface.validate(self.tracking_number)
 
 
 def linkify_tracking_number(tracking_number):

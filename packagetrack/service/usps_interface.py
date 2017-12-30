@@ -1,10 +1,12 @@
+import logging
 import urllib
 from datetime import datetime
 
-import packagetrack
 from ..data import TrackingInfo
 from ..service import BaseInterface, TrackFailed
 from ..xml_dict import xml_to_dict
+
+log = logging.getLogger()
 
 
 class USPSInterface(BaseInterface):
@@ -33,6 +35,7 @@ class USPSInterface(BaseInterface):
         ##
         return (
             (num.isdigit() and len(num) == 22) or
+            (num.isdigit() and len(num) == 10) or
             (
                 len(num) == 13 and
                 num[0:2].isalpha() and
@@ -48,10 +51,9 @@ class USPSInterface(BaseInterface):
 
 
     def _build_request(self, tracking_number):
-        config = packagetrack.config
 
         return '<TrackFieldRequest USERID="%s"><TrackID ID="%s"/></TrackFieldRequest>' % (
-                config.get('USPS', 'userid'), tracking_number)
+                self.config.get('USPS', 'userid'), tracking_number)
 
     def _parse_response(self, raw, tracking_number):
         rsp = xml_to_dict(raw)
@@ -114,11 +116,10 @@ class USPSInterface(BaseInterface):
         return trackinfo
 
     def _send_request(self, tracking_number):
-        config = packagetrack.config
 
         # pick the USPS API server
-        if config.has_option('USPS', 'server'):
-            server_type = config.get('USPS', 'server')
+        if self.config.has_option('USPS', 'server'):
+            server_type = self.config.get('USPS', 'server')
         else:
             server_type = 'production'
 
@@ -129,9 +130,11 @@ class USPSInterface(BaseInterface):
         webf.close()
         return resp
 
+
     def url(self, tracking_number):
         return ('http://trkcnfrm1.smi.usps.com/PTSInternetWeb/'
                 'InterLabelInquiry.do?origTrackNum=%s' % tracking_number)
+
 
     def validate(self, tracking_number):
         "Return True if this is a valid USPS tracking number."

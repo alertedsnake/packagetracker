@@ -3,15 +3,12 @@ from fedex.config import FedexConfig
 from fedex.base_service import FedexError
 from fedex.services.track_service import FedexTrackRequest, FedexInvalidTrackingNumber
 
-import packagetrack
 from ..data import TrackingInfo
 from ..service import BaseInterface, TrackFailed, InvalidTrackingNumber
 
 
 class FedexInterface(BaseInterface):
 
-    def __init__(self):
-        self.cfg = None
 
     def identify(self, num):
         return num.isdigit() and (len(num) in (12, 15, 20, 22))
@@ -117,31 +114,29 @@ class FedexInterface(BaseInterface):
         """Makes and returns a FedexConfig object from the packagetrack
            configuration.  Caches it, so it doesn't create each time."""
 
-        config = packagetrack.config
-
         # got one cached, so just return it
         if self.cfg:
             return self.cfg
 
         self.cfg = FedexConfig(
-            key                 = config.get('FedEx', 'key'),
-            password            = config.get('FedEx', 'password'),
-            account_number      = config.get('FedEx', 'account_number'),
-            meter_number        = config.get('FedEx', 'meter_number'),
+            key                 = self.config.get('FedEx', 'key'),
+            password            = self.config.get('FedEx', 'password'),
+            account_number      = self.config.get('FedEx', 'account_number'),
+            meter_number        = self.config.get('FedEx', 'meter_number'),
             use_test_server     = False,
             express_region_code = 'US',
         )
 
         # these are optional, and afaik, not really used for tracking
         # at all, but you can still set them, so....
-        if config.has_option('FedEx', 'express_region_code'):
-            self.cfg.express_region_code = config.get('FedEx', 'express_region_code')
+        if self.config.has_option('FedEx', 'express_region_code'):
+            self.cfg.express_region_code = self.config.get('FedEx', 'express_region_code')
 
-        if config.has_option('FedEx', 'integrator_id'):
-            self.cfg.integrator_id = config.get('FedEx', 'integrator_id')
+        if self.config.has_option('FedEx', 'integrator_id'):
+            self.cfg.integrator_id = self.config.get('FedEx', 'integrator_id')
 
-        if config.has_option('FedEx', 'use_test_server'):
-            self.cfg.use_test_server = config.getboolean('FedEx', 'use_test_server')
+        if self.testing or self.config.has_option('FedEx', 'use_test_server'):
+            self.cfg.use_test_server = self.config.getboolean('FedEx', 'use_test_server')
 
         return self.cfg
 

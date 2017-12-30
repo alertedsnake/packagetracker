@@ -1,4 +1,7 @@
 
+DATE_FORMAT = "%Y-%m-%d %H:%M"
+
+
 class TrackingInfo(dict):
     """Generic tracking information object returned by a tracking request"""
 
@@ -32,7 +35,7 @@ class TrackingInfo(dict):
             return ('<TrackingInfo(svc=%r, delivery_date=%r, status=%r, location=%r, detail=%r)>' %
                     (
                         self.service,
-                        self.delivery_date.strftime("%Y-%m-%d %H:%M"),
+                        self.delivery_date.strftime(DATE_FORMAT),
                         self.status,
                         self.location,
                         self.delivery_detail,
@@ -40,14 +43,14 @@ class TrackingInfo(dict):
         else:
             ddate = None
             if self.delivery_date:
-                ddate = self.delivery_date.strftime("%Y-%m-%d %H:%M")
+                ddate = self.delivery_date.strftime(DATE_FORMAT)
 
             return ('<TrackingInfo(svc=%r, delivery_date=%r, status=%r, last_update=%r, location=%r)>' %
                     (
                         self.service,
                         ddate,
                         self.status,
-                        self.last_update.strftime("%Y-%m-%d %H:%M"),
+                        self.last_update.strftime(DATE_FORMAT),
                         self.location,
                     ))
 
