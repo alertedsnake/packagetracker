@@ -15,6 +15,8 @@ class BaseInterface(object):
         self.config = config
         self.testing = testing
 
+    def cleanup_number(self, num):
+        return num.upper().replace(' ', '')
 
     def identify(self, num):
         """

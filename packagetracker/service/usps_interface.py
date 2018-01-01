@@ -1,11 +1,11 @@
 import logging
 import requests
-from six.moves.urllib.parse import urlparse
+from six.moves.urllib_parse import quote as urlquote
 from datetime import datetime
 
 from ..data         import TrackingInfo
 from ..service      import BaseInterface
-from ..exceptions   import TrackFailed
+from ..exceptions   import TrackFailed, InvalidTrackingNumber
 from ..xml_dict     import xml_to_dict
 
 log = logging.getLogger()
@@ -55,6 +55,7 @@ class USPSInterface(BaseInterface):
         ##
         ## Actual trackable numbers are 13-characters.
         ##
+        num = self.cleanup_number(num)
         return (
             (num.isdigit() and len(num) == 22) or
             (num.isdigit() and len(num) == 10) or
@@ -65,6 +66,30 @@ class USPSInterface(BaseInterface):
                 num[11:13].isalpha()
             )
         )
+
+
+    def validate(self, num):
+        """Validate the given tracking number.
+
+        Returns:
+            bool
+        """
+        if not self.identify(num):
+            log.debug("Number {} is not a USPS number!".format(num))
+            return False
+
+        log.debug("Validating USPS {}".format(num))
+
+        num = self.cleanup_number(num)
+
+        # we can only do this with numerics!
+        if (num.isdigit() and len(num) == 22):
+            checksum = calculate_checksum(num)
+            test = int(num[-1])
+            log.debug("USPS {} checksum: {}, should be {}".format(num, checksum, test))
+            return (checksum == test)
+
+        return True
 
 
     def track(self, num):
@@ -78,6 +103,10 @@ class USPSInterface(BaseInterface):
             InvalidTrackingNumber
             TrackFailed
         """
+        if not self.validate(num):
+            log.debug("Invalid tracking number: {}".format(num))
+            raise InvalidTrackingNumber(num)
+
         resp = self._send_request(num)
         return self._parse_response(resp, num)
 
@@ -87,7 +116,9 @@ class USPSInterface(BaseInterface):
         return '<TrackFieldRequest USERID="%s"><TrackID ID="%s"/></TrackFieldRequest>' % (
                 self.config.get('USPS', 'userid'), num)
 
+
     def _parse_response(self, raw, num):
+        log.debug(raw)
         rsp = xml_to_dict(raw)
 
         # this is a system error
@@ -156,32 +187,9 @@ class USPSInterface(BaseInterface):
         else:
             baseurl = self.api_url
 
-        url = "%s%s" % (baseurl, urlparse.quote(self._build_request(num)))
+        url = "%s%s" % (baseurl, urlquote(self._build_request(num)))
         resp = requests.get(url)
-        return resp.text()
-
-
-    def validate(self, num):
-        """Validate the given tracking number.
-
-        Returns:
-            bool
-        """
-
-        return self.identify(num)
-
-# TODO is this the right thing to do?
-#        tracking_num = tracking_number[2:11]
-#        odd_total = 0
-#        even_total = 0
-#        for ii, digit in enumerate(tracking_num):
-#            if ii % 2:
-#                odd_total += int(digit)
-#            else:
-#                even_total += int(digit)
-#        total = odd_total + even_total * 3
-#        check = ((total - (total % 10) + 10) - total) % 10
-#        return (check == int(tracking_num[-1:]))
+        return resp.text
 
 
     def _getTrackingDate(self, node):
@@ -213,6 +221,5 @@ def calculate_checksum(num):
     even = sum(map(int, num[-2::-2]))
     odd = sum(map(int, num[-3::-2]))
     checksum = even * 3 + odd
-    checkdigit = (10 - (checksum % 10)) % 10
-    return checkdigit == int(num[-1])
+    return (10 - (checksum % 10)) % 10
 

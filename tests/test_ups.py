@@ -60,7 +60,7 @@ class TestUPS(unittest.TestCase):
             self.interface.track(BOGUS_NUM)
 
 
-    def test_delivered(self):
+    def test_track_delivered(self):
         """In which we test a delivered package."""
 
         num = '1Z12345E0205271688'
@@ -85,7 +85,7 @@ class TestUPS(unittest.TestCase):
         self.assertIsInstance(info.delivery_date, datetime.date)
 
 
-    def test_origin_scan(self):
+    def test_track_origin_scan(self):
         """
         In which we test a package which has been scanned at the
         origin but not delivered.
@@ -115,7 +115,7 @@ class TestUPS(unittest.TestCase):
             p.track()
 
 
-    def test_bad_track_num(self):
+    def test_track_bogus_num(self):
         """In which we test a bogus tracking number."""
         with self.assertRaises(InvalidTrackingNumber):
             self.interface.track(BOGUS_NUM)

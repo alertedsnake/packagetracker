@@ -56,6 +56,7 @@ class UPSInterface(BaseInterface):
         Returns:
             bool: true if the given number is a UPS tracking number.
         """
+        num = self.cleanup_number(num)
         return num.startswith('1Z') and len(num) == 18
 
 
@@ -69,6 +70,12 @@ class UPSInterface(BaseInterface):
         Returns:
             bool: True if this is a valid UPS tracking number.
         """
+
+        if not self.identify(num):
+            log.debug("Number {} is not a UPS number!".format(num))
+            return False
+
+        num = self.cleanup_number(num)
         log.debug("Validating UPS {}".format(num))
 
         # Per documentation, test numbers have invalid checksums!
@@ -269,7 +276,7 @@ class UPSInterface(BaseInterface):
         """
 
         if not self.validate(num):
-            log.debug("Invalid UPS tracking number: {}".format(num))
+            log.debug("Invalid tracking number: {}".format(num))
             raise InvalidTrackingNumber(num)
 
         resp = self._send_request(num)
