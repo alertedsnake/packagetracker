@@ -27,7 +27,7 @@ class TestUSPS(unittest.TestCase):
 
     def test_usps_validate(self):
         if not self.tracker.config.has_section('USPS'):
-            return unittest.skip("No USPS config, skipping tests")
+            return self.skipTest("No USPS config, skipping tests")
 
         assert self.tracker.package('9205596900128506211821').validate()
         assert not self.tracker.package('9405503699300451134169').validate()
@@ -35,8 +35,8 @@ class TestUSPS(unittest.TestCase):
 
     def test_track(self):
         if not self.tracker.config.has_section('USPS'):
-            return unittest.skip("No USPS config, skipping tests")
+            return self.skipTest("No USPS config, skipping tests")
 
         # nope, not yet
-        return unittest.skip("not yet implemented")
+        return self.skipTest("not yet implemented")
 

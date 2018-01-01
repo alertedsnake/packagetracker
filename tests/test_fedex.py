@@ -23,7 +23,7 @@ class TestFedEx(unittest.TestCase):
 
     def test_track_fedex(self):
         if not self.tracker.config.has_section('FedEx'):
-            return unittest.skip("No FedEx config, skipping tests")
+            return self.skipTest("No FedEx config, skipping tests")
 
         p = self.tracker.package('012345678901234')
         try:

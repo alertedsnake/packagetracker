@@ -65,7 +65,7 @@ class TestUPS(unittest.TestCase):
 
         num = '1Z12345E0205271688'
         if not self.tracker.config.has_section('UPS'):
-            return unittest.skip("No UPS config, skipping tests")
+            return self.skipTest("No UPS config, skipping tests")
 
         p = self.tracker.package(num)
         info = p.track()
@@ -91,7 +91,7 @@ class TestUPS(unittest.TestCase):
         origin but not delivered.
         """
         if not self.tracker.config.has_section('UPS'):
-            return unittest.skip("No UPS config, skipping tests")
+            return self.skipTest("No UPS config, skipping tests")
 
         num = '1Z12345E1305277940'
         p = self.tracker.package(num)
@@ -108,7 +108,7 @@ class TestUPS(unittest.TestCase):
         information available.
         """
         if not self.tracker.config.has_section('UPS'):
-            return unittest.skip("No UPS config, skipping tests")
+            return self.skipTest("No UPS config, skipping tests")
 
         p = self.tracker.package(FAIL_NUMBER)
         with self.assertRaises(TrackFailed):
