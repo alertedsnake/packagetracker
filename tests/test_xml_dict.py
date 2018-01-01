@@ -1,6 +1,6 @@
-from unittest import TestCase
+import unittest
 
-from packagetrack import xml_dict
+from packagetracker import xml_dict
 
 test_xml = '''<?xml version="1.0"?>
 <foo>
@@ -24,7 +24,7 @@ test_dict = {
 }
 
 
-class TestXMLDict(TestCase):
+class TestXMLDict(unittest.TestCase):
 
     def test_xml_to_dict(self):
         assert xml_dict.xml_to_dict(test_xml) == test_dict
@@ -36,3 +36,4 @@ class TestXMLDict(TestCase):
     def test_attribute(self):
         xml = xml_dict.dict_to_xml(test_dict, {'xml:lang': 'en-US'})
         assert '<foo xml:lang="en-US">' in xml
+

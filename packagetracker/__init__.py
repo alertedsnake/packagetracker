@@ -49,26 +49,23 @@ The default location for this file is ~/.packagetrack.
 """
 import logging
 import os.path
-import sys
+from pkg_resources import get_distribution, DistributionNotFound
+from six.moves.configparser import ConfigParser
 
 from .service.fedex_interface import FedexInterface
 from .service.ups_interface   import UPSInterface
 from .service.usps_interface  import USPSInterface
 
-if sys.version_info >= (3, 0):
-    from configparser import ConfigParser
-else:
-    from ConfigParser import ConfigParser
 
-
-__authors__     = 'Scott Torborg, Michael Stella'
-__credits__     = ['Scott Torborg', 'Michael Stella']
+__authors__     = 'Michael Stella'
 __license__     = 'GPL'
-__maintainer__  = 'Scott Torborg'
+__maintainer__  = 'Michael Stella'
 __status__      = 'Development'
-__version__     = '0.3.1'
 
-_interfaces = {}
+try:
+    __version__ = get_distribution('packagetracker').version
+except DistributionNotFound:
+    __version__ = '0.1.0.dev1'
 
 log = logging.getLogger()
 
@@ -151,7 +148,7 @@ class Package(object):
         if not self.iface or not self.shipper:
             raise UnsupportedShipper()
 
-        log.debug("{}: shipper is {}".format(tracking_number, shipper))
+        log.debug("{}: shipper is {}".format(tracking_number, self.shipper))
 
 
     def track(self):

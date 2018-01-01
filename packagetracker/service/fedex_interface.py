@@ -9,18 +9,44 @@ from ..service import BaseInterface, TrackFailed, InvalidTrackingNumber
 
 class FedexInterface(BaseInterface):
 
+    click_url = 'http://www.fedex.com/Tracking?tracknumbers={num}'
+
 
     def identify(self, num):
+        """
+        Identify a FedEx package
+
+        Args:
+            num (str): Tracking number
+
+        Returns:
+            bool: true if this is a FedEx tracking number
+        """
         return num.isdigit() and (len(num) in (12, 15, 20, 22))
 
-    def track(self, tracking_number):
-        if not self.validate(tracking_number):
+
+    def track(self, num):
+        """
+        Track a FedEx package.
+
+        Args:
+            num (str, int): tracking number
+
+        Raises:
+            InvalidTrackingNumber
+            TrackFailed
+        """
+        # maybe we got an int? That works for FedEx.
+        if isinstance(num, int):
+            num = str(num)
+
+        if not self.validate(num):
             raise InvalidTrackingNumber()
 
         track = FedexTrackRequest(self._get_cfg())
 
         track.TrackPackageIdentifier.Type = 'TRACKING_NUMBER_OR_DOORTAG'
-        track.TrackPackageIdentifier.Value = tracking_number
+        track.TrackPackageIdentifier.Value = num
         track.IncludeDetailedScans = True
 
         # Fires off the request, sets the 'response' attribute on the object.
@@ -38,11 +64,7 @@ class FedexInterface(BaseInterface):
                     track.response.Notifications[0].LocalizedMessage
             ))
 
-        return self._parse_response(track.response.TrackDetails[0], tracking_number)
-
-
-    def url(self, tracking_number):
-        return ('http://www.fedex.com/Tracking?tracknumbers=%s' % tracking_number)
+        return self._parse_response(track.response.TrackDetails[0], num)
 
 
     def _parse_response(self, rsp, tracking_number):

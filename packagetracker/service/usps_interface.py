@@ -1,5 +1,6 @@
 import logging
-import urllib
+import requests
+from six.moves.urllib.parse import urlparse
 from datetime import datetime
 
 from ..data import TrackingInfo
@@ -10,7 +11,9 @@ log = logging.getLogger()
 
 
 class USPSInterface(BaseInterface):
-    api_url = {
+    click_url = 'http://trkcnfrm1.smi.usps.com/PTSInternetWeb/InterLabelInquiry.do?origTrackNum={num}'
+
+    _api_urls = {
         'secure_test': 'https://secure.shippingapis.com/ShippingAPITest.dll?API=TrackV2&XML=',
         'test':        'http://testing.shippingapis.com/ShippingAPITest.dll?API=TrackV2&XML=',
         'production':  'http://production.shippingapis.com/ShippingAPI.dll?API=TrackV2&XML=',
@@ -26,8 +29,26 @@ class USPSInterface(BaseInterface):
         #'EJ': 'something?',
     }
 
+
+    @property
+    def api_url(self):
+        if self.testing:
+            return self._api_urls['test']
+        return self._api_urls['production']
+
+
     def identify(self, num):
+        """
+        Identify a package.
+
+        Args:
+            num (str): Tracking number
+
+        Returns:
+            bool: true if this service can track this package
+        """
         ##
+        ## TODO: verify this:
         ## Apparently USPS uses 22-digit numbers for the *not-trackable*
         ## delivery confirmation numbers.
         ##
@@ -45,17 +66,27 @@ class USPSInterface(BaseInterface):
         )
 
 
-    def track(self, tracking_number):
-        resp = self._send_request(tracking_number)
-        return self._parse_response(resp, tracking_number)
+    def track(self, num):
+        """
+        Track a USPS package.
+
+        Args:
+            num (str): Tracking number
+
+        Raises:
+            InvalidTrackingNumber
+            TrackFailed
+        """
+        resp = self._send_request(num)
+        return self._parse_response(resp, num)
 
 
-    def _build_request(self, tracking_number):
+    def _build_request(self, num):
 
         return '<TrackFieldRequest USERID="%s"><TrackID ID="%s"/></TrackFieldRequest>' % (
-                self.config.get('USPS', 'userid'), tracking_number)
+                self.config.get('USPS', 'userid'), num)
 
-    def _parse_response(self, raw, tracking_number):
+    def _parse_response(self, raw, num):
         rsp = xml_to_dict(raw)
 
         # this is a system error
@@ -84,11 +115,11 @@ class USPSInterface(BaseInterface):
         status = summary['Event']
 
         # USPS doesn't return this, so we work it out from the tracking number
-        service_code = tracking_number[0:2]
+        service_code = num[0:2]
         service_description = self.service_types.get(service_code, 'USPS')
 
         trackinfo = TrackingInfo(
-                            tracking_number = tracking_number,
+                            tracking_number = num,
                             last_update     = last_update,
                             delivery_date   = last_update,
                             status          = status,
@@ -115,31 +146,30 @@ class USPSInterface(BaseInterface):
 
         return trackinfo
 
-    def _send_request(self, tracking_number):
+
+    def _send_request(self, num):
 
         # pick the USPS API server
         if self.config.has_option('USPS', 'server'):
-            server_type = self.config.get('USPS', 'server')
+            baseurl = self._api_urls[self.config.get('USPS', 'server')]
         else:
-            server_type = 'production'
+            baseurl = self.api_url
 
-        url = "%s%s" % (self.api_url[server_type],
-                        urllib.quote(self._build_request(tracking_number)))
-        webf = urllib.urlopen(url)
-        resp = webf.read()
-        webf.close()
-        return resp
+        url = "%s%s" % (baseurl, urlparse.quote(self._build_request(num)))
+        resp = requests.get(url)
+        return resp.text()
 
 
-    def url(self, tracking_number):
-        return ('http://trkcnfrm1.smi.usps.com/PTSInternetWeb/'
-                'InterLabelInquiry.do?origTrackNum=%s' % tracking_number)
+    def validate(self, num):
+        """Validate the given tracking number.
 
+        Returns:
+            bool
+        """
 
-    def validate(self, tracking_number):
-        "Return True if this is a valid USPS tracking number."
+        return self.identify(num)
 
-        return True
+# TODO is this the right thing to do?
 #        tracking_num = tracking_number[2:11]
 #        odd_total = 0
 #        even_total = 0

@@ -1,14 +1,14 @@
-from datetime import datetime, date
-from unittest import TestCase
+import datetime
+import unittest
 
-from packagetrack.data import TrackingInfo, DATE_FORMAT
+from packagetracker.data import TrackingInfo, DATE_FORMAT
 
 
-class TestTrackingInfo(TestCase):
+class TestTrackingInfo(unittest.TestCase):
 
     def test_repr(self):
-        now = datetime.now()
-        today = date.today()
+        now = datetime.datetime.now()
+        today = datetime.date.today()
         info = TrackingInfo(tracking_number='1Z9999999999999999',
                             delivery_date=today,
                             status='IN TRANSIT',

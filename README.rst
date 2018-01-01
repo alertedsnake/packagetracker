@@ -1,38 +1,37 @@
-==================================================================================
-packagetrack - Track packages
-==================================================================================
+packagetracker - Track packages
+===============================
 
 :Authors:
-    Scott Torborg (storborg)
     Michael Stella (alertedsnake)
 
-:Version: 0.3
+:Version: 0.5
 
 This library tracks packages.
 
-*Note* Use at your own risk!
+
+Credits
+============
+
+Much of this library is based on `packagetrack`, initially by Scott Torborg.
+
 
 Installation
 ============
 
-Simple as::
+Use pip::
 
-    $ easy_install packagetrack
-
-Or if you prefer, download the source and then::
-
-    $ python setup.py build
-    $ python setup.py install
+    $ pip install packagetracker
 
 Example
 =======
 
->>> from packagetrack import Package
->>> package = Package('1Z9999999999999999')
-# Identify packages (UPS, FedEx, and USPS)
+>>> import packagetracker
+>>> tracker = packagetracker.PackageTracker()
+>>> package = tracker.package('1Z9999999999999999')
+# Identify packages:
 >>> package.shipper
 'UPS'
-# Track packages (UPS only, requires API access)
+# Track packages:
 >>> info = package.track()
 >>> print info.status
 IN TRANSIT TO
@@ -40,7 +39,7 @@ IN TRANSIT TO
 2010-06-25 00:00:00
 >>> print info.last_update
 2010-06-19 00:54:00
-# Get tracking URLs (UPS, FedEx, and USPS)
+# Get tracking URLs (UPS, FedEx, and USPS):
 >>> print package.url()
 http://wwwapps.ups.com/WebTracking/processInputRequest?TypeOfInquiryNumber=T&InquiryNumber1=1Z9999999999999999
 

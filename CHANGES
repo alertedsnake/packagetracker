@@ -1,8 +1,12 @@
-Version 0.1::
+Version 0.5::
 
-    Initial release.
+Initial reworking from the old packagetrack package, which has become
+abandonware.
 
-
-Version 0.2::
-
-    Added check for FedEx Express tracking numbers, which can be 12 digits.
+New features:
+    
+* Full Python2.6 -> 3.6 support using modern libraries (six, requests, etc)
+* Split up tests
+* Main interface is now a class rather than using module-based state
+* Using JSON interfaces when possible, rather than XML
+* Much cleanup

@@ -1,30 +1,52 @@
 
-import requests
 import json
+import logging
+import requests
 from datetime import datetime
 
 from ..data import TrackingInfo
 from ..service import BaseInterface, InvalidTrackingNumber, TrackFailed
 
-TEST_URL = 'https://wwwcie.ups.com/rest/Track'
-API_URL = 'https://onlinetools.ups.com/rest/Track'
+
+log = logging.getLogger()
 
 
 class UPSInterface(BaseInterface):
+    click_url = 'http://wwwapps.ups.com/WebTracking/processInputRequest?TypeOfInquiryNumber=T&InquiryNumber1={num}'
+
+    _api_urls = {
+        "test":         'https://wwwcie.ups.com/rest/Track',
+        "production":   'https://onlinetools.ups.com/rest/Track',
+    }
 
     @property
     def api_url(self):
         if self.testing:
-            return TEST_URL
-        return API_URL
+            return self._api_urls['test']
+        return self._api_urls['production']
 
 
-    def identify(self, tracking_number):
-        return tracking_number.startswith('1Z')
+    def identify(self, num):
+        """
+        Identify a package.
+
+        Args:
+            num (str): Tracking number
+
+        Returns:
+            bool: true if the given number is a UPS tracking number.
+        """
+        return num.startswith('1Z') and len(num) == 18
 
 
     def validate(self, tracking_number):
-        "Return True if this is a valid UPS tracking number."
+        """
+        Validate this tracking number.
+
+        Returns:
+            bool: True if this is a valid UPS tracking number.
+        """
+
         tracking_num = tracking_number[2:-1]
         odd_total = 0
         even_total = 0
@@ -78,10 +100,10 @@ class UPSInterface(BaseInterface):
 
     def _send_request(self, tracking_number):
         body = self._build_request(tracking_number)
-        print(json.dumps(body, indent=2))
+        log.debug('Request: {}'.format(json.dumps(body, indent=2)))
 
         resp = requests.post(self.api_url, data=json.dumps(body))
-        print(resp.text)
+        log.debug('Response: {}'.format(resp.json()))
         data = resp.json()
 
         # check for fatal errors now
@@ -197,16 +219,25 @@ class UPSInterface(BaseInterface):
 
         return trackinfo
 
-    def track(self, tracking_number):
-        "Track a UPS package by number. Returns just a delivery date."
 
-        if not self.validate(tracking_number):
+    def track(self, num):
+        """
+        Track a UPS package by number
+
+        Args:
+            num: UPS tracking number
+
+        Returns:
+            str: tracking info
+
+        Raises:
+            InvalidTrackingnumber
+            TrackFailed
+        """
+
+        if not self.validate(num):
             raise InvalidTrackingNumber()
 
-        resp = self._send_request(tracking_number)
-        return self._parse_response(resp, tracking_number)
+        resp = self._send_request(num)
+        return self._parse_response(resp, num)
 
-    def url(self, tracking_number):
-        "Return a tracking info detail URL by number."
-        return ('http://wwwapps.ups.com/WebTracking/processInputRequest?'
-                'TypeOfInquiryNumber=T&InquiryNumber1=%s' % tracking_number)
