@@ -1,6 +1,7 @@
 import unittest
 
-from packagetracker import PackageTracker
+from packagetracker            import PackageTracker
+#from packagetracker.exceptions import TrackFailed, InvalidTrackingNumber, UnsupportedShipper
 
 
 class TestFedEx(unittest.TestCase):

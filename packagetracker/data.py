@@ -10,7 +10,7 @@ class TrackingInfo(dict):
         self.events = []
 
         self.tracking_number = tracking_number
-        self.delivery_date = delivery_date
+        self._delivery_date = delivery_date
         self.status = status
         self.last_update = last_update
 
@@ -30,24 +30,26 @@ class TrackingInfo(dict):
         self[name] = val
 
     def __repr__(self):
+        ddate = None
+        if self.delivery_date:
+            ddate = self.delivery_date.strftime(DATE_FORMAT)
+
         # return slightly different info if it's delivered
         if self.status == 'DELIVERED':
-            return ('<TrackingInfo(svc=%r, delivery_date=%r, status=%r, location=%r, detail=%r)>' %
+            return ('<TrackingInfo(service=%r, num=%r, delivery_date=%r, status=%r, location=%r, detail=%r)>' %
                     (
                         self.service,
-                        self.delivery_date.strftime(DATE_FORMAT),
+                        self.tracking_number,
+                        ddate,
                         self.status,
                         self.location,
                         self.delivery_detail,
                     ))
         else:
-            ddate = None
-            if self.delivery_date:
-                ddate = self.delivery_date.strftime(DATE_FORMAT)
-
-            return ('<TrackingInfo(svc=%r, delivery_date=%r, status=%r, last_update=%r, location=%r)>' %
+            return ('<TrackingInfo(service=%r, num=%r, delivery_date=%r, status=%r, last_update=%r, location=%r)>' %
                     (
                         self.service,
+                        self.tracking_number,
                         ddate,
                         self.status,
                         self.last_update.strftime(DATE_FORMAT),
@@ -55,10 +57,33 @@ class TrackingInfo(dict):
                     ))
 
 
-    def addEvent(self, date, location, detail):
+    def add_event(self, date, location, detail):
+        """
+        Add an event.
+        """
         e = TrackingEvent(date, location, detail)
         self.events.append(e)
         return e
+
+
+    @property
+    def last_event(self):
+        """
+        Return the most recent event.
+        """
+        return sorted(self.events, key=lambda event: event.date, reverse=True)[0]
+
+
+    @property
+    def delivery_date(self):
+        """
+        The delivered date, which may be on the last event rather than
+        stored in this object itself.
+        """
+        if self._delivery_date:
+            return self._delivery_date
+        if self.last_event:
+            return self.last_event.date
 
 
 class TrackingEvent(dict):

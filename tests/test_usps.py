@@ -1,6 +1,7 @@
 import unittest
 
-from packagetracker import PackageTracker
+from packagetracker            import PackageTracker
+#from packagetracker.exceptions import TrackFailed, InvalidTrackingNumber, UnsupportedShipper
 
 
 class TestUSPS(unittest.TestCase):
@@ -25,6 +26,9 @@ class TestUSPS(unittest.TestCase):
         assert url.startswith('http')
 
     def test_usps_validate(self):
+        if not self.tracker.config.has_section('USPS'):
+            return unittest.skip("No USPS config, skipping tests")
+
         assert self.tracker.package('9205596900128506211821').validate()
         assert not self.tracker.package('9405503699300451134169').validate()
 

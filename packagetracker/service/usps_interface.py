@@ -3,9 +3,10 @@ import requests
 from six.moves.urllib.parse import urlparse
 from datetime import datetime
 
-from ..data import TrackingInfo
-from ..service import BaseInterface, TrackFailed
-from ..xml_dict import xml_to_dict
+from ..data         import TrackingInfo
+from ..service      import BaseInterface
+from ..exceptions   import TrackFailed
+from ..xml_dict     import xml_to_dict
 
 log = logging.getLogger()
 
@@ -131,14 +132,14 @@ class USPSInterface(BaseInterface):
         # add the last event if delivered, USPS doesn't duplicate
         # the final event in the event log, but we want it there
         if status == 'DELIVERED':
-            trackinfo.addEvent(
+            trackinfo.add_event(
                 location = last_location,
                 detail = status,
                 date = last_update,
             )
 
         for e in events:
-            trackinfo.addEvent(
+            trackinfo.add_event(
                 location = self._getTrackingLocation(e),
                 date     = self._getTrackingDate(e),
                 detail   = e['Event'],
@@ -206,4 +207,12 @@ class USPSInterface(BaseInterface):
                 node['EventState'],
                 node['EventCountry'] or 'US'
         ))
+
+
+def calculate_checksum(num):
+    even = sum(map(int, num[-2::-2]))
+    odd = sum(map(int, num[-3::-2]))
+    checksum = even * 3 + odd
+    checkdigit = (10 - (checksum % 10)) % 10
+    return checkdigit == int(num[-1])
 

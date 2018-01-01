@@ -4,8 +4,21 @@ import logging
 import requests
 from datetime import datetime
 
-from ..data import TrackingInfo
-from ..service import BaseInterface, InvalidTrackingNumber, TrackFailed
+from ..data         import TrackingInfo
+from ..exceptions   import TrackFailed, InvalidTrackingNumber
+from ..service      import BaseInterface
+
+# test numbers from the documentation - these have invalid checksums!
+TEST_NUMBERS = [
+    '1Z12345E0205271688',
+    '1Z12345E6605272234',
+    '1Z12345E0305271640',
+    '1Z12345E1305277940',
+    '1Z12345E6205277936',
+    '1Z648616E192760718',
+    '1ZWX0692YP40636269',
+    '1Z12345E1505270452',
+]
 
 
 log = logging.getLogger()
@@ -18,6 +31,13 @@ class UPSInterface(BaseInterface):
         "test":         'https://wwwcie.ups.com/rest/Track',
         "production":   'https://onlinetools.ups.com/rest/Track',
     }
+
+    _error_exceptions = {
+        '151018': InvalidTrackingNumber,
+        '151022': InvalidTrackingNumber,
+        '154010': InvalidTrackingNumber,
+    }
+
 
     @property
     def api_url(self):
@@ -39,34 +59,27 @@ class UPSInterface(BaseInterface):
         return num.startswith('1Z') and len(num) == 18
 
 
-    def validate(self, tracking_number):
+    def validate(self, num):
         """
-        Validate this tracking number.
+        Validate this tracking number, verifies its checksum.
+
+        Args:
+            num (str): tracking number
 
         Returns:
             bool: True if this is a valid UPS tracking number.
         """
+        log.debug("Validating UPS {}".format(num))
 
-        tracking_num = tracking_number[2:-1]
-        odd_total = 0
-        even_total = 0
+        # Per documentation, test numbers have invalid checksums!
+        if self.testing and num in TEST_NUMBERS:
+            log.info("Tracking number {} is a test number, skipping check".format(num))
+            return True
 
-        for ii, digit in enumerate(tracking_num.upper()):
-            try:
-                value = int(digit)
-            except ValueError:
-                value = int((ord(digit) - 63) % 10)
-            if (ii + 1) % 2:
-                odd_total += value
-            else:
-                even_total += value
-
-        total = odd_total + even_total * 2
-        check = ((total - (total % 10) + 10) - total) % 10
-        try:
-            return (check == int(tracking_number[-1:]))
-        except ValueError:
-            return False
+        checksum = calculate_checksum(num)
+        test = num[-1:]
+        log.debug("UPS {} checksum: {}, should be {}".format(num, checksum, test))
+        return (test == checksum)
 
 
     def _build_access_request(self):
@@ -75,7 +88,9 @@ class UPSInterface(BaseInterface):
                 'Username': self.config.get('UPS', 'user_id'),
                 'Password': self.config.get('UPS', 'password'),
             },
-            'AccessLicenseNumber': self.config.get('UPS', 'license_number'),
+            'ServiceAccessToken': {
+                'AccessLicenseNumber': self.config.get('UPS', 'license_number'),
+            },
         }
 
 
@@ -102,15 +117,33 @@ class UPSInterface(BaseInterface):
         body = self._build_request(tracking_number)
         log.debug('Request: {}'.format(json.dumps(body, indent=2)))
 
-        resp = requests.post(self.api_url, data=json.dumps(body))
+        headers = {
+            'Content-Type': 'application/json',
+        }
+        resp = requests.post(self.api_url, data=json.dumps(body), headers=headers)
         log.debug('Response: {}'.format(resp.json()))
         data = resp.json()
 
         # check for fatal errors now
         if 'Fault' in data:
-            raise TrackFailed(data['Fault']['detail']['Errors']['ErrorDetail']['PrimaryErrorCode']['Description'])
+            self._parse_error_response(data)
 
         return data
+
+    def _parse_error_response(self, rsp):
+        error = rsp['Fault']
+        error_detail = error['detail']['Errors']['ErrorDetail']
+        error_code = error_detail['PrimaryErrorCode']['Code']
+        error_msg = error_detail['PrimaryErrorCode']['Description']
+
+        log.error("Track failed: {code} {description}".format(
+            code = error_code,
+            description = error_msg))
+
+        if error_code in self._error_exceptions:
+            raise self._error_exceptions[error_code](error_msg)
+        else:
+            raise TrackFailed(error_msg)
 
 
     def _parse_response(self, rsp, tracking_number):
@@ -200,22 +233,22 @@ class UPSInterface(BaseInterface):
         # add a single event, UPS doesn't seem to support multiple?
 
         for e in package['Activity']:
-            loc = e['ActivityLocation']['Address']
             location = None
-            if 'City' in loc:
-                location = ','.join((loc['City'],
-                                     loc['StateProvinceCode'],
-                                     loc['CountryCode']))
+            if 'ActivityLocation' in e:
+                loc = e['ActivityLocation']['Address']
+                if 'City' in loc:
+                    location = ','.join((loc['City'],
+                                        loc['StateProvinceCode'],
+                                        loc['CountryCode']))
 
             edate = datetime.strptime(e['Date'], "%Y%m%d").date()
             etime = datetime.strptime(e['Time'], "%H%M%S").time()
             timestamp = datetime.combine(edate, etime)
-            trackinfo.addEvent(
+            trackinfo.add_event(
                 location = location,
                 detail = e['Status']['Description'],
                 date = timestamp,
             )
-
 
         return trackinfo
 
@@ -236,8 +269,42 @@ class UPSInterface(BaseInterface):
         """
 
         if not self.validate(num):
-            raise InvalidTrackingNumber()
+            log.debug("Invalid UPS tracking number: {}".format(num))
+            raise InvalidTrackingNumber(num)
 
         resp = self._send_request(num)
         return self._parse_response(resp, num)
+
+
+def calculate_checksum(num):
+    """
+    Calculate the checksum on a UPS tracking number.
+
+    Args:
+        num: tracking number
+
+    Returns:
+        int: checksum
+    """
+
+    testnum = num[2:-1]
+
+    even_total = odd_total = 0
+    for ii, digit in enumerate(testnum.upper()):
+        try:
+            digit = int(digit)
+        except ValueError:
+            digit = int(ord(digit) - 63) % 10
+
+        if (ii + 1) % 2:
+            odd_total += digit
+        else:
+            even_total += digit
+
+    total = odd_total + even_total * 2
+    checksum = total % 10
+    if checksum > 0:
+        checksum = 10 - checksum
+
+    return checksum
 

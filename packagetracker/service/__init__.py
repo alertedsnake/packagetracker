@@ -1,12 +1,4 @@
 
-class TrackFailed(Exception):
-    pass
-
-
-class InvalidTrackingNumber(Exception):
-    pass
-
-
 class BaseInterface(object):
     """
     Base class for tracking interfaces

@@ -55,6 +55,7 @@ from six.moves.configparser import ConfigParser
 from .service.fedex_interface import FedexInterface
 from .service.ups_interface   import UPSInterface
 from .service.usps_interface  import USPSInterface
+from .exceptions              import UnsupportedShipper
 
 
 __authors__     = 'Michael Stella'
@@ -69,9 +70,6 @@ except DistributionNotFound:
 
 log = logging.getLogger()
 
-
-class UnsupportedShipper(Exception):
-    pass
 
 
 class PackageTracker(object):

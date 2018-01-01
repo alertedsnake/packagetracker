@@ -3,8 +3,9 @@ from fedex.config import FedexConfig
 from fedex.base_service import FedexError
 from fedex.services.track_service import FedexTrackRequest, FedexInvalidTrackingNumber
 
-from ..data import TrackingInfo
-from ..service import BaseInterface, TrackFailed, InvalidTrackingNumber
+from ..data         import TrackingInfo
+from ..exceptions   import TrackFailed, InvalidTrackingNumber
+from ..service      import BaseInterface
 
 
 class FedexInterface(BaseInterface):
@@ -111,7 +112,7 @@ class FedexInterface(BaseInterface):
 
         # now add the events
         for e in rsp.Events:
-            trackinfo.addEvent(
+            trackinfo.add_event(
                 location = self._getTrackingLocation(e),
                 date     = e.Timestamp,
                 detail   = e.EventDescription,
