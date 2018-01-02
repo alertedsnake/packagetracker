@@ -23,11 +23,6 @@ class TrackingInfo(dict):
         # service type, i.e. FedEx Ground, UPS Basic, etc.
         self.service = service
 
-    def __getattr__(self, name):
-        return self[name]
-
-    def __setattr__(self, name, val):
-        self[name] = val
 
     def __repr__(self):
         ddate = None
@@ -94,11 +89,6 @@ class TrackingEvent(dict):
         self.location = location
         self.detail = detail
 
-    def __getattr__(self, name):
-        return self[name]
-
-    def __setattr__(self, name, val):
-        self[name] = val
 
     def __repr__(self):
         return ('<TrackingEvent(date=%r, location=%r, detail=%r)>' %
