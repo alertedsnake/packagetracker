@@ -3,7 +3,18 @@ DATE_FORMAT = "%Y-%m-%d %H:%M"
 
 
 class TrackingInfo(dict):
-    """Generic tracking information object returned by a tracking request"""
+    """
+    Generic tracking information object returned by a tracking request
+
+    Args:
+        tracking_number (str):    the carrier tracking number
+        delivery_date (datetime): date the item was delivered, None if not yet delivered
+        status (str):             last available status
+        last_update (datetime):   timestamp of the last update
+        location (str):           location of the last update
+        delivery_datail (str):    details about the delivery
+        service (str):            description of the carrier's service used
+    """
 
     def __init__(self, tracking_number, delivery_date, status, last_update, location=None, delivery_detail=None, service=None):
 
@@ -55,6 +66,14 @@ class TrackingInfo(dict):
     def add_event(self, date, location, detail):
         """
         Add an event.
+
+        Args:
+            date (datetime.datetime): event timestamp
+            location (str): location text
+            detail (str): event detail
+
+        Returns:
+            TrackingEvent: the event added
         """
         e = TrackingEvent(date, location, detail)
         self.events.append(e)
@@ -64,7 +83,8 @@ class TrackingInfo(dict):
     @property
     def last_event(self):
         """
-        Return the most recent event.
+        Returns:
+            TrackingEvent: the most recent event.
         """
         return sorted(self.events, key=lambda event: event.date, reverse=True)[0]
 
@@ -74,6 +94,9 @@ class TrackingInfo(dict):
         """
         The delivered date, which may be on the last event rather than
         stored in this object itself.
+
+        Returns:
+            datetime.datetime
         """
         if self._delivery_date:
             return self._delivery_date

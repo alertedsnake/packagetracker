@@ -16,7 +16,16 @@ class BaseInterface(object):
         self.testing = testing
 
     def cleanup_number(self, num):
+        """
+        Cleans up the tracking number by removing spaces and uppercasing it.
+
+        Args:
+            num (str): tracking number
+        Returns:
+            str: clean tracking number
+        """
         return num.upper().replace(' ', '')
+
 
     def identify(self, num):
         """
@@ -54,6 +63,6 @@ class BaseInterface(object):
             num (str): tracking number
 
         Returns:
-            str
+            str: a URL
         """
         return self.click_url.format(num=num)

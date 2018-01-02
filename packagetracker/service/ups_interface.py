@@ -8,7 +8,7 @@ from ..data         import TrackingInfo
 from ..exceptions   import TrackFailed, InvalidTrackingNumber
 from ..service      import BaseInterface
 
-# test numbers from the documentation - these have invalid checksums!
+# test numbers from the documentation - note that these have invalid checksums!
 TEST_NUMBERS = [
     '1Z12345E0205271688',
     '1Z12345E6605272234',
@@ -25,6 +25,10 @@ log = logging.getLogger()
 
 
 class UPSInterface(BaseInterface):
+    """
+    UPS interface class.
+    """
+
     click_url = 'http://wwwapps.ups.com/WebTracking/processInputRequest?TypeOfInquiryNumber=T&InquiryNumber1={num}'
 
     _api_urls = {
@@ -32,6 +36,7 @@ class UPSInterface(BaseInterface):
         "production":   'https://onlinetools.ups.com/rest/Track',
     }
 
+    # specific exceptions for specific error codes
     _error_exceptions = {
         '151018': InvalidTrackingNumber,
         '151022': InvalidTrackingNumber,
@@ -39,11 +44,13 @@ class UPSInterface(BaseInterface):
     }
 
 
-    @property
-    def api_url(self):
+    def __init__(self, *args, **kwargs):
+        super(UPSInterface, self).__init__(*args, **kwargs)
+
         if self.testing:
-            return self._api_urls['test']
-        return self._api_urls['production']
+            self.api_url = self._api_urls['test']
+        else:
+            self.api_url = self._api_urls['production']
 
 
     def identify(self, num):
@@ -90,6 +97,8 @@ class UPSInterface(BaseInterface):
 
 
     def _build_access_request(self):
+        """Build the access portion of the request"""
+
         return {
             'UsernameToken': {
                 'Username': self.config.get('UPS', 'user_id'),
@@ -102,6 +111,8 @@ class UPSInterface(BaseInterface):
 
 
     def _build_track_request(self, tracking_number):
+        # Build the track portion of the request
+
         return {
             'Request': {
                 'TransactionReference': {
@@ -114,6 +125,8 @@ class UPSInterface(BaseInterface):
 
 
     def _build_request(self, tracking_number):
+        # build the full tracking request
+
         return {
             'UPSSecurity': self._build_access_request(),
             'TrackRequest': self._build_track_request(tracking_number),
@@ -121,6 +134,8 @@ class UPSInterface(BaseInterface):
 
 
     def _send_request(self, tracking_number):
+        # make the tracking request
+
         body = self._build_request(tracking_number)
         log.debug('Request: {}'.format(json.dumps(body, indent=2)))
 
@@ -138,6 +153,8 @@ class UPSInterface(BaseInterface):
         return data
 
     def _parse_error_response(self, rsp):
+        # parse any error response, raise appropriate exceptions
+
         error = rsp['Fault']
         error_detail = error['detail']['Errors']['ErrorDetail']
         error_code = error_detail['PrimaryErrorCode']['Code']
@@ -147,6 +164,8 @@ class UPSInterface(BaseInterface):
             code = error_code,
             description = error_msg))
 
+        # if there's an exception specifically configured for this code,
+        # use it, otherwise just use the default TrackFailed
         if error_code in self._error_exceptions:
             raise self._error_exceptions[error_code](error_msg)
         else:
@@ -154,6 +173,8 @@ class UPSInterface(BaseInterface):
 
 
     def _parse_response(self, rsp, tracking_number):
+        # parse a good response
+
         root = rsp['TrackResponse']
 
         response = root['Response']

@@ -1,12 +1,13 @@
 """A simple, generic interface to track packages.
 
 Supported shippers:
-    Federal Express, UPS, U.S. Postal Service
+    FedEx, UPS, U.S. Postal Service
 
 Basic usage:
 
-    >>> from packagetrack import Package
-    >>> package = Package('1Z9999999999999999')
+    >>> from packagetracker import PackageTracker
+    >>> tracker = PackageTracker()
+    >>> package = tracker.package('1Z9999999999999999')
     # Identify packages (UPS, FedEx, and USPS)
     >>> package.shipper
     'UPS'
@@ -44,13 +45,13 @@ that looks like:
     password = XXXXXXXXXXXX
 
 
-The default location for this file is ~/.packagetrack.
+The default location for this file is ~/.config/packagetrack.
 
 """
 import logging
 import os.path
-from pkg_resources import get_distribution, DistributionNotFound
-from six.moves.configparser import ConfigParser
+from pkg_resources            import get_distribution, DistributionNotFound
+from six.moves.configparser   import ConfigParser
 
 from .service.fedex_interface import FedexInterface
 from .service.ups_interface   import UPSInterface
@@ -73,16 +74,27 @@ log = logging.getLogger()
 
 
 class PackageTracker(object):
+    """
+    The main package tracking interface object.
+
+    Args:
+        config_file (str): path to a valid config file
+        testing (bool): True to enable test-only mode.
+    """
 
     def __init__(self, config_file='~/.config/packagetrack', testing=False):
         self.config_file = os.path.expanduser(config_file)
+        self.testing = testing
+
         if not os.path.exists(self.config_file):
             raise IOError("Config file does not exist - create one?")
 
+        # read the config file
         self.config = ConfigParser()
         self.config.read(self.config_file)
-        self._interfaces = {}
 
+        # register the interfaces
+        self._interfaces = {}
         self.register_interface('UPS', UPSInterface(config=self.config, testing=testing))
         self.register_interface('USPS', USPSInterface(config=self.config, testing=testing))
         self.register_interface('FedEx', FedexInterface(config=self.config, testing=testing))
@@ -101,7 +113,7 @@ class PackageTracker(object):
 
     def package(self, tracking_number):
         """
-        Returns a Package given the tracking number.
+        Returns a Package object given the tracking number.
 
         Args:
             tracking_number (str)
@@ -122,15 +134,19 @@ class PackageTracker(object):
 
 
 class Package(object):
-    """A package to be tracked."""
+    """
+    A package to be tracked.
+
+    Most likely you won't use this directly, you'll create a Package
+    object by calling PackageTracker.package() instead.
+
+    Args:
+        parent (PackageTracker): an instance of PackageTracker
+        tracking_number (str): the tracking number
+
+    """
 
     def __init__(self, parent, tracking_number):
-        """
-        Args:
-            tracking_number (str): number to track
-            configfile (str): path to a config file, see docs.
-        """
-        self.config = parent.config
         self.tracking_number = tracking_number.upper().replace(' ', '')
         self.shipper = None
         self.iface = None

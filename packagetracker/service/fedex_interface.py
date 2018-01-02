@@ -9,6 +9,9 @@ from ..service      import BaseInterface
 
 
 class FedexInterface(BaseInterface):
+    """
+    FedEx interface class.
+    """
 
     click_url = 'http://www.fedex.com/Tracking?tracknumbers={num}'
 
@@ -122,7 +125,7 @@ class FedexInterface(BaseInterface):
 
 
     def _getTrackingLocation(self, e):
-        """Returns a nicely formatted location for a given event"""
+        """Returns a nicely formatted location for a given event."""
         try:
             return ','.join((
                             e.Address.City,
@@ -134,8 +137,10 @@ class FedexInterface(BaseInterface):
 
 
     def _get_cfg(self):
-        """Makes and returns a FedexConfig object from the packagetrack
-           configuration.  Caches it, so it doesn't create each time."""
+        """
+        Makes and returns a FedexConfig object from the packagetrack
+        configuration.  Caches it, so it doesn't create each time.
+        """
 
         # got one cached, so just return it
         if self.cfg:
@@ -164,46 +169,60 @@ class FedexInterface(BaseInterface):
         return self.cfg
 
 
-    def validate(self, tnum):
-        """Validate the tracking number"""
+    def validate(self, num):
+        """
+        Validate the given tracking number.
 
-        if len(tnum) == 12:
-            return self._validate_express(tnum)
+        Args:
+            num (str): tracking number
 
-        elif (len(tnum) == 15):
-            return self._validate_ground96(tnum)
+        Returns:
+            bool: True if the number is valid.
+        """
 
-        elif (len(tnum) == 22) and tnum.startswith('96'):
-            return self._validate_ground96(tnum)
+        if len(num) == 12:
+            return self._validate_express(num)
 
-        elif (len(tnum) == 20) and tnum.startswith('00'):
-            return self._validate_ssc18(tnum)
+        elif (len(num) == 15):
+            return self._validate_ground96(num)
+
+        elif (len(num) == 22) and num.startswith('96'):
+            return self._validate_ground96(num)
+
+        elif (len(num) == 20) and num.startswith('00'):
+            return self._validate_ssc18(num)
 
         return False
 
 
-    def _validate_ground96(self, tracking_number):
+    def _validate_ground96(self, num):
         """Validates ground code 128 ("96") bar codes
 
-            15-digit form:
+        15-digit form::
 
-                    019343586678996
-        shipper ID: -------
-        package ID:        -------
-        checksum:                 -
+                        019343586678996
+            shipper ID: -------
+            package ID:        -------
+            checksum:                 -
 
-                22-digit form:
-                    9611020019343586678996
-        UCC/EAN id: --
-        SCNC:         --
-        class of svc:   --
-        shipper ID:        -------
-        package ID:               -------
-        checksum:                        -
+        22-digit form::
+                        9611020019343586678996
+            UCC/EAN id: --
+            SCNC:         --
+            class of svc:   --
+            shipper ID:        -------
+            package ID:               -------
+            checksum:                        -
+
+        Args:
+            num (str): tracking number
+
+        Returns:
+            bool: True if the number is valid.
 
         """
 
-        rev = tracking_number[::-1]
+        rev = num[::-1]
 
         eventotal = 0
         oddtotal = 0
@@ -216,12 +235,21 @@ class FedexInterface(BaseInterface):
         check = 10 - ((eventotal * 3 + oddtotal) % 10)
 
         # compare with the checksum digit, which is the last digit
-        return check == int(tracking_number[-1:])
+        return check == int(num[-1:])
 
-    def _validate_ssc18(self, tracking_number):
-        """Validates SSC18 tracking numbers"""
 
-        rev = tracking_number[::-1]
+    def _validate_ssc18(self, num):
+        """
+        Validates SSC18 tracking numbers
+
+        Args:
+            num (str): tracking number
+
+        Returns:
+            bool: True if the number is valid.
+        """
+
+        rev = num[::-1]
 
         eventotal = 0
         oddtotal = 0
@@ -234,13 +262,19 @@ class FedexInterface(BaseInterface):
         check = 10 - ((eventotal * 3 + oddtotal) % 10)
 
         # compare with the checksum digit, which is the last digit
-        return check == int(tracking_number[-1:])
+        return check == int(num[-1:])
 
 
-    def _validate_express(self, tracking_number):
-        """Validates Express tracking numbers"""
+    def _validate_express(self, num):
+        """Validates Express tracking numbers
 
-        basenum = tracking_number[0:10]
+        Args:
+            num (str): tracking number
+
+        Returns:
+            bool: True if the number is valid.
+        """
+        basenum = num[0:10]
 
         sums = []
         mult = 1
@@ -261,5 +295,5 @@ class FedexInterface(BaseInterface):
             check = 0
 
         # compare with the checksum digit, which is the last digit
-        return check == int(tracking_number[-1:])
+        return check == int(num[-1:])
 

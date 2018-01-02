@@ -14,10 +14,16 @@ For example, this XML:
 
 Will be transformed to and from this dict:
 
-    {'foo': {'bar': {'baz': 'what',
-                     'quux': 'hello'},
-             'sup': 'yeah',
-             'goodbye': 'no'}}
+    {
+        'foo': {
+            'bar': {
+                'baz': 'what',
+                'quux': 'hello',
+            },
+            'sup': 'yeah',
+            'goodbye': 'no',
+        }
+    }
 """
 
 from xml.dom.minidom import getDOMImplementation, parseString

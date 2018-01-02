@@ -12,6 +12,10 @@ log = logging.getLogger()
 
 
 class USPSInterface(BaseInterface):
+    """
+    USPS interface class.
+    """
+
     click_url = 'http://trkcnfrm1.smi.usps.com/PTSInternetWeb/InterLabelInquiry.do?origTrackNum={num}'
 
     _api_urls = {
@@ -21,6 +25,7 @@ class USPSInterface(BaseInterface):
         'secure':      'https://secure.shippingapis.com/ShippingAPI.dll?API=TrackV2&XML=',
     }
 
+    # names of USPS service types
     service_types = {
         'EA': 'express mail',
         'EC': 'express mail international',
@@ -31,11 +36,13 @@ class USPSInterface(BaseInterface):
     }
 
 
-    @property
-    def api_url(self):
+    def __init__(self, *args, **kwargs):
+        super(USPSInterface, self).__init__(*args, **kwargs)
+
         if self.testing:
-            return self._api_urls['test']
-        return self._api_urls['production']
+            self.api_url = self._api_urls['test']
+        else:
+            self.api_url = self._api_urls['production']
 
 
     def identify(self, num):
@@ -112,12 +119,15 @@ class USPSInterface(BaseInterface):
 
 
     def _build_request(self, num):
+        # Build a request
 
         return '<TrackFieldRequest USERID="%s"><TrackID ID="%s"/></TrackFieldRequest>' % (
                 self.config.get('USPS', 'userid'), num)
 
 
     def _parse_response(self, raw, num):
+        # parse the response, this is all XML.
+
         log.debug(raw)
         rsp = xml_to_dict(raw)
 
@@ -180,8 +190,9 @@ class USPSInterface(BaseInterface):
 
 
     def _send_request(self, num):
+        # Send the right request
 
-        # pick the USPS API server
+        # pick the USPS API server, if in the config file
         if self.config.has_option('USPS', 'server'):
             baseurl = self._api_urls[self.config.get('USPS', 'server')]
         else:
@@ -218,6 +229,16 @@ class USPSInterface(BaseInterface):
 
 
 def calculate_checksum(num):
+    """
+    Calculate the checksum on a USPS tracking number.
+
+    Args:
+        num: tracking number
+
+    Returns:
+        int: checksum
+    """
+
     even = sum(map(int, num[-2::-2]))
     odd = sum(map(int, num[-3::-2]))
     checksum = even * 3 + odd
