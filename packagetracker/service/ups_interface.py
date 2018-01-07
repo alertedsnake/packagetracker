@@ -91,7 +91,7 @@ class UPSInterface(BaseInterface):
             return True
 
         checksum = calculate_checksum(num)
-        test = num[-1:]
+        test = int(num[-1:])
         log.debug("UPS {} checksum: {}, should be {}".format(num, checksum, test))
         return (test == checksum)
 
