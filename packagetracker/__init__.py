@@ -56,8 +56,13 @@ from six.moves.configparser   import ConfigParser
 from .service.fedex_interface import FedexInterface
 from .service.ups_interface   import UPSInterface
 from .service.usps_interface  import USPSInterface
-from .exceptions              import UnsupportedShipper
+from .exceptions              import (InvalidTrackingNumber,
+                                      UnsupportedShipper,
+                                      TrackFailed)
 
+__all__         = ['InvalidTrackingNumber',
+                   'UnsupportedShipper',
+                   'TrackFailed']
 
 __authors__     = 'Michael Stella'
 __license__     = 'GPL'

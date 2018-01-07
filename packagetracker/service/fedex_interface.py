@@ -1,3 +1,4 @@
+import logging
 
 from fedex.config import FedexConfig
 from fedex.base_service import FedexError
@@ -6,6 +7,30 @@ from fedex.services.track_service import FedexTrackRequest, FedexInvalidTracking
 from ..data         import TrackingInfo
 from ..exceptions   import TrackFailed, InvalidTrackingNumber
 from ..service      import BaseInterface
+
+log = logging.getLogger()
+
+# test numbers from the documentation - note that these have invalid checksums!
+TEST_NUMBERS = (
+    '449044304137821',
+    '149331877648230',
+    '020207021381215',
+    '403934084723025',
+    '920241085725456',
+    '568838414941',
+    '039813852990618',
+    '231300687629630',
+    '797806677146',
+    '377101283611590',
+    '852426136339213',
+    '797615467620',
+    '957794015041323',
+    '076288115212522',
+    '581190049992',
+    '122816215025810',
+    '843119172384577',
+    '070358180009382',
+)
 
 
 class FedexInterface(BaseInterface):
@@ -181,17 +206,22 @@ class FedexInterface(BaseInterface):
         """
 
         if len(num) == 12:
+            log.debug(f"{num} is express")
             return self._validate_express(num)
 
         elif (len(num) == 15):
+            log.debug(f"{num} is ground96")
             return self._validate_ground96(num)
 
         elif (len(num) == 22) and num.startswith('96'):
+            log.debug(f"{num} is ground96 #2")
             return self._validate_ground96(num)
 
         elif (len(num) == 20) and num.startswith('00'):
+            log.debug(f"{num} is ssc18")
             return self._validate_ssc18(num)
 
+        log.debug(f"{num} - can't validate?")
         return False
 
 
@@ -221,6 +251,10 @@ class FedexInterface(BaseInterface):
             bool: True if the number is valid.
 
         """
+        # Per documentation, test numbers have invalid checksums!
+        if self.testing and num in TEST_NUMBERS:
+            log.info("Tracking number {} is a test number, skipping check".format(num))
+            return True
 
         rev = num[::-1]
 
@@ -232,10 +266,11 @@ class FedexInterface(BaseInterface):
             else:
                 oddtotal += int(rev[i])
 
-        check = 10 - ((eventotal * 3 + oddtotal) % 10)
-
+        checksum = 10 - ((eventotal * 3 + oddtotal) % 10)
+        test = int(num[-1:])
         # compare with the checksum digit, which is the last digit
-        return check == int(num[-1:])
+        log.debug("ground96 {}: checksum: {}, should be {}".format(num, checksum, test))
+        return (test == checksum)
 
 
     def _validate_ssc18(self, num):
@@ -248,6 +283,10 @@ class FedexInterface(BaseInterface):
         Returns:
             bool: True if the number is valid.
         """
+        # Per documentation, test numbers have invalid checksums!
+        if self.testing and num in TEST_NUMBERS:
+            log.info("Tracking number {} is a test number, skipping check".format(num))
+            return True
 
         rev = num[::-1]
 
@@ -274,6 +313,11 @@ class FedexInterface(BaseInterface):
         Returns:
             bool: True if the number is valid.
         """
+        # Per documentation, test numbers have invalid checksums!
+        if self.testing and num in TEST_NUMBERS:
+            log.info("Tracking number {} is a test number, skipping check".format(num))
+            return True
+
         basenum = num[0:10]
 
         sums = []
