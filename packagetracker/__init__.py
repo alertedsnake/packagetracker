@@ -1,9 +1,9 @@
 """A simple, generic interface to track packages.
 
-Supported shippers:
-    FedEx, UPS, U.S. Postal Service
+Supported shippers currently include: FedEx, UPS, U.S. Postal Service.
 
-Basic usage:
+Basic usage
+***********
 
     >>> from packagetracker import PackageTracker
     >>> tracker = PackageTracker()
@@ -23,11 +23,12 @@ Basic usage:
     >>> print package.url()
     http://wwwapps.ups.com/WebTracking/processInputRequest?TypeOfInquiryNumber=T&InquiryNumber1=1Z9999999999999999
 
-Configuration:
+Configuration
+*************
 
 To enable package tracking, you will need to obtain an API account for
 each of the services you wish to use, and then make a config file
-that looks like:
+that looks like::
 
     [UPS]
     license_number = XXXXXXXXXXXXXXXX

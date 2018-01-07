@@ -12,7 +12,8 @@ This library tracks packages.
 Credits
 ============
 
-Much of this library is based on `packagetrack`, initially by Scott Torborg.
+Much of this library is based on [packagetrack](https://github.com/storborg/packagetrack)
+initially by Scott Torborg.
 
 
 Installation
@@ -48,7 +49,7 @@ API Configuration
 =====================
 
 To enable package tracking, get an account for each of the services you wish
-to use, and then make a file at ~/.packagetrack that looks like::
+to use, and then make a file at ~/.config/packagetrack that looks like::
 
     [UPS]
     license_number = XXXXXXXXXXXXXXXX
