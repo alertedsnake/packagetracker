@@ -183,8 +183,15 @@ class UPSInterface(BaseInterface):
             raise TrackFailed(response['ResponseStatus']['Description'])
 
         # we need the service code, some things are treated differently
-        service_code = root['Shipment']['ShipmentType']['Code']
-        service_description = 'UPS %s' % root['Shipment']['Service']['Description']
+        try:
+            service_code = root['Shipment']['ShipmentType']['Code']
+        except KeyError:
+            service_code = root['Shipment']['Service']['Code']
+
+        service_description = root['Shipment']['Service']['Description']
+        if not service_description.startswith('UPS'):
+            service_description = 'UPS ' + service_description
+
 
         package = root['Shipment']['Package']
 
