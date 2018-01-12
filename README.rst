@@ -12,7 +12,7 @@ This library tracks packages.
 Credits
 ============
 
-Much of this library is based on [packagetrack](https://github.com/storborg/packagetrack)
+Much of this library is based on `packagetrack <https://github.com/storborg/packagetrack>`_,
 initially by Scott Torborg.
 
 
