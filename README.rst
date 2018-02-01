@@ -69,6 +69,18 @@ to use, and then make a file at ~/.config/packagetrack that looks like::
 
 For USPS, the optional argument 'server' can be set to 'test' or 'production'.
 
+Status
+=======
+
+Currently the UPS and USPS interfaces work... mostly well.  I'm sure there are
+weird edge cases everywhere, there's a lot of documentation to read, not all of
+it good.
+
+The FedEx interface is completely broken, I'm not sure if it's the
+[python-fedex](https://github.com/python-fedex-devs/python-fedex) that isn't
+fetching the right information from the API, or the API just not returning
+useful tracking, but right now, you get basically nothing.
+
 
 License
 =======

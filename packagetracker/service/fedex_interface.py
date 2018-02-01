@@ -1,4 +1,5 @@
 import logging
+import json
 
 from fedex.config import FedexConfig
 from fedex.base_service import FedexError
@@ -40,6 +41,10 @@ class FedexInterface(BaseInterface):
 
     click_url = 'http://www.fedex.com/Tracking?tracknumbers={num}'
 
+    def __init__(self, *args, **kwargs):
+        self.cfg = None
+        super().__init__(*args, **kwargs)
+
 
     def identify(self, num):
         """
@@ -69,13 +74,16 @@ class FedexInterface(BaseInterface):
         if isinstance(num, int):
             num = str(num)
 
-        if not self.validate(num):
-            raise InvalidTrackingNumber()
+        #if not self.validate(num):
+        #    raise InvalidTrackingNumber()
 
         track = FedexTrackRequest(self._get_cfg())
 
-        track.TrackPackageIdentifier.Type = 'TRACKING_NUMBER_OR_DOORTAG'
-        track.TrackPackageIdentifier.Value = num
+        # Track by Tracking Number
+        track.SelectionDetails.PackageIdentifier.Type = 'TRACKING_NUMBER_OR_DOORTAG'
+        track.SelectionDetails.PackageIdentifier.Value = num
+        #del track.SelectionDetails.OperatingCompany
+
         track.IncludeDetailedScans = True
 
         # Fires off the request, sets the 'response' attribute on the object.
@@ -86,18 +94,17 @@ class FedexInterface(BaseInterface):
         except FedexError as e:
             raise TrackFailed(e)
 
-        # TODO: I haven't actually seen an unsuccessful query yet
-        if track.response.HighestSeverity != "SUCCESS":
-            raise TrackFailed("%d: %s" % (
-                    track.response.Notifications[0].Code,
-                    track.response.Notifications[0].LocalizedMessage
-            ))
-
-        return self._parse_response(track.response.TrackDetails[0], num)
-
+        return self._parse_response(track.response.CompletedTrackDetails[0].TrackDetails[0], num)
 
     def _parse_response(self, rsp, tracking_number):
         """Parse the track response and return a TrackingInfo object"""
+
+        if hasattr(rsp, 'Notification'):
+            if rsp.Notification.Severity == 'ERROR':
+                raise TrackFailed('{}: {}'.format(
+                    rsp.Notification.Code,
+                    rsp.Notification.LocalizedMessage))
+
 
         # test status code, return actual delivery time if package
         # was delivered, otherwise estimated target time
