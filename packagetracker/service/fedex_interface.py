@@ -94,6 +94,9 @@ class FedexInterface(BaseInterface):
         except FedexError as e:
             raise TrackFailed(e)
 
+        #from fedex.tools.conversion import sobject_to_json
+        #print(sobject_to_json(track.response))
+
         return self._parse_response(track.response.CompletedTrackDetails[0].TrackDetails[0], num)
 
     def _parse_response(self, rsp, tracking_number):
@@ -105,10 +108,9 @@ class FedexInterface(BaseInterface):
                     rsp.Notification.Code,
                     rsp.Notification.LocalizedMessage))
 
-
         # test status code, return actual delivery time if package
         # was delivered, otherwise estimated target time
-        if rsp.StatusCode == 'DL':
+        if rsp.StatusDetail.Code == 'DL':
             delivery_date = rsp.ActualDeliveryTimestamp
 
             # this may not be present
@@ -138,11 +140,11 @@ class FedexInterface(BaseInterface):
         trackinfo = TrackingInfo(
                     tracking_number = tracking_number,
                     last_update     = last_update,
-                    status          = rsp.StatusDescription,
+                    status          = rsp.ServiceCommitMessage,
                     location        = location,
                     delivery_date   = delivery_date,
                     delivery_detail = delivery_detail,
-                    service         = rsp.ServiceType,
+                    service         = rsp.Service.Type,
                 )
 
         # now add the events
