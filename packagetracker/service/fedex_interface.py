@@ -108,9 +108,11 @@ class FedexInterface(BaseInterface):
                     rsp.Notification.Code,
                     rsp.Notification.LocalizedMessage))
 
+        status = 'In transit'
+
         # test status code, return actual delivery time if package
         # was delivered, otherwise estimated target time
-        if rsp.StatusDetail.Code == 'DL':
+        if hasattr(rsp, 'StatusDetail.Code') and rsp.StatusDetail.Code == 'DL':
             delivery_date = rsp.ActualDeliveryTimestamp
 
             # this may not be present
@@ -125,22 +127,31 @@ class FedexInterface(BaseInterface):
                                 rsp.ActualDeliveryAddress.StateOrProvinceCode,
                                 rsp.ActualDeliveryAddress.CountryCode,
                                 ))
+            status = 'Delivered'
 
         else:
             delivery_detail = None
+            last_update = None
+            location = None
+
             try:
                 delivery_date = rsp.EstimatedDeliveryTimestamp
             except AttributeError:
                 delivery_date = None
-            last_update = rsp.Events[0].Timestamp
-            location = self._getTrackingLocation(rsp.Events[0])
+
+            if hasattr(rsp, 'Events'):
+                last_update = rsp.Events[0].Timestamp
+                location = self._getTrackingLocation(rsp.Events[0])
+
+            if hasattr(rsp, 'ServiceCommitMessage'):
+                status = rsp.ServiceCommitMessage
 
 
         # a new tracking info object
         trackinfo = TrackingInfo(
                     tracking_number = tracking_number,
                     last_update     = last_update,
-                    status          = rsp.ServiceCommitMessage,
+                    status          = status,
                     location        = location,
                     delivery_date   = delivery_date,
                     delivery_detail = delivery_detail,
@@ -148,12 +159,13 @@ class FedexInterface(BaseInterface):
                 )
 
         # now add the events
-        for e in rsp.Events:
-            trackinfo.add_event(
-                location = self._getTrackingLocation(e),
-                date     = e.Timestamp,
-                detail   = e.EventDescription,
-            )
+        if hasattr(rsp, 'Events'):
+            for e in rsp.Events:
+                trackinfo.add_event(
+                    location = self._getTrackingLocation(e),
+                    date     = e.Timestamp,
+                    detail   = e.EventDescription,
+                )
 
         return trackinfo
 

@@ -36,9 +36,11 @@ class TrackingInfo(dict):
 
 
     def __repr__(self):
-        ddate = None
+        ddate = ldate = None
         if self.delivery_date:
             ddate = self.delivery_date.strftime(DATE_FORMAT)
+        if self.last_update:
+            ldate = self.last_updatee.strftime(DATE_FORMAT)
 
         # return slightly different info if it's delivered
         if self.status == 'DELIVERED':
@@ -58,7 +60,7 @@ class TrackingInfo(dict):
                         self.tracking_number,
                         ddate,
                         self.status,
-                        self.last_update.strftime(DATE_FORMAT),
+                        ldate,
                         self.location,
                     ))
 
@@ -86,7 +88,8 @@ class TrackingInfo(dict):
         Returns:
             TrackingEvent: the most recent event.
         """
-        return sorted(self.events, key=lambda event: event.date, reverse=True)[0]
+        if self.events:
+            return sorted(self.events, key=lambda event: event.date, reverse=True)[0]
 
 
     @property
