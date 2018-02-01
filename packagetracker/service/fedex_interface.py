@@ -195,7 +195,9 @@ class FedexInterface(BaseInterface):
         if self.config.has_option('FedEx', 'integrator_id'):
             self.cfg.integrator_id = self.config.get('FedEx', 'integrator_id')
 
-        if self.testing or self.config.has_option('FedEx', 'use_test_server'):
+        if self.testing:
+            self.cfg.use_test_server = True
+        elif self.config.has_option('FedEx', 'use_test_server'):
             self.cfg.use_test_server = self.config.getboolean('FedEx', 'use_test_server')
 
         return self.cfg
