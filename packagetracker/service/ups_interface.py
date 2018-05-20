@@ -41,6 +41,7 @@ class UPSInterface(BaseInterface):
         '151018': InvalidTrackingNumber,
         '151022': InvalidTrackingNumber,
         '154010': InvalidTrackingNumber,
+        '151044': InvalidTrackingNumber,
     }
 
 
