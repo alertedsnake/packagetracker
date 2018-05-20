@@ -12,8 +12,7 @@ This library tracks packages.
 Credits
 ============
 
-Much of this library is based on `packagetrack <https://github.com/storborg/packagetrack>`_,
-initially by Scott Torborg.
+Much of this library is based on `packagetrack`_ initially by Scott Torborg.
 
 
 Installation
@@ -76,10 +75,10 @@ Currently the UPS and USPS interfaces work... mostly well.  I'm sure there are
 weird edge cases everywhere, there's a lot of documentation to read, not all of
 it good.
 
-The FedEx interface is completely broken, I'm not sure if it's the
-[python-fedex](https://github.com/python-fedex-devs/python-fedex) that isn't
-fetching the right information from the API, or the API just not returning
-useful tracking, but right now, you get basically nothing.
+The FedEx interface is a little broken, I'm not sure if it's the
+`python-fedex`_ that isn't fetching the right information from the API, or the
+API just not returning useful tracking, but right now, you get basically
+nothing.
 
 
 License
@@ -89,4 +88,6 @@ Packagetrack is released under the GNU General Public License (GPL). See the
 LICENSE file for full text of the license.
 
 
-.. # vim: syntax=rst expandtab tabstop=4 shiftwidth=4 shiftround
+.. _packagetrack: https://github.com/storborg/packagetrack
+.. _python-fedex: https://github.com/python-fedex-devs/python-fedex
+.. # vim: syntax=rst expandtab tabstop=4 shiftwidth=4 shiftround tw=80
