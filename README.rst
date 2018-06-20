@@ -18,9 +18,7 @@ Much of this library is based on `packagetrack`_ initially by Scott Torborg.
 Installation
 ============
 
-Use pip::
-
-    $ pip install packagetracker
+This package is not published to PyPi, so grab the source and do ``pip install .`` in this directory, or use ``setup.py``.
 
 Example
 =======
