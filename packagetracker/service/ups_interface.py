@@ -20,6 +20,13 @@ TEST_NUMBERS = [
     '1Z12345E1505270452',
 ]
 
+ACTIVITY_STATUS_TYPE = {
+    'I': 'In Transit',
+    'D': 'Delivered',
+    'X': 'Exception',
+    'P': 'Pickup',
+    'M': 'Manifest Pickup',
+}
 
 log = logging.getLogger()
 
@@ -225,15 +232,19 @@ class UPSInterface(BaseInterface):
             delivery_date = last_update
 
         else:
-            if status_code == 'M':
+            # this is a pickup, so we don't care about location
+            if 'M' in status_code or 'P' in status_code:
                 last_location = None
 
             else:
-                # the last known location is interesting
+                # the last known location is interesting, but sometimes
+                # not all the fields are provided.
                 loc = activity['ActivityLocation']['Address']
-                last_location = ','.join((loc['City'],
-                                          loc['StateProvinceCode'],
-                                          loc['CountryCode']))
+                locvals = []
+                for key in ('City', 'StateProvinceCode', 'CountryCode'):
+                    if key in loc:
+                        locvals.append(loc[key])
+                last_location = ','.join(locvals)
 
             # Delivery date is the last_update if delivered, otherwise
             # the estimated delivery date
