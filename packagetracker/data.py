@@ -40,7 +40,7 @@ class TrackingInfo(dict):
         if self.delivery_date:
             ddate = self.delivery_date.strftime(DATE_FORMAT)
         if self.last_update:
-            ldate = self.last_updatee.strftime(DATE_FORMAT)
+            ldate = self.last_update.strftime(DATE_FORMAT)
 
         # return slightly different info if it's delivered
         if self.status == 'DELIVERED':
