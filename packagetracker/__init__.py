@@ -79,7 +79,7 @@ log = logging.getLogger()
 
 
 
-class PackageTracker(object):
+class PackageTracker:
     """
     The main package tracking interface object.
 
@@ -139,7 +139,7 @@ class PackageTracker(object):
         return self._interfaces.get(key)
 
 
-class Package(object):
+class Package():
     """
     A package to be tracked.
 

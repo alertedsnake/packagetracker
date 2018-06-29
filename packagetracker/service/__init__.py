@@ -1,5 +1,5 @@
 
-class BaseInterface(object):
+class BaseInterface():
     """
     Base class for tracking interfaces
 

@@ -37,7 +37,7 @@ class USPSInterface(BaseInterface):
 
 
     def __init__(self, *args, **kwargs):
-        super(USPSInterface, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         if self.testing:
             self.api_url = self._api_urls['test']

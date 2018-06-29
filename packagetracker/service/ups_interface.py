@@ -53,7 +53,7 @@ class UPSInterface(BaseInterface):
 
 
     def __init__(self, *args, **kwargs):
-        super(UPSInterface, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         if self.testing:
             self.api_url = self._api_urls['test']
