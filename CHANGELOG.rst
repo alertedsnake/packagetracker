@@ -1,6 +1,13 @@
 Changelog
 ==================
 
+0.5.1 (alertedsnake):
+---------------------
+
+* Bugfix typo in date handling
+* Bugfix location handling in UPS 'M' or 'P' types, which have no location
+* Remove some old Python2.7 stuff
+
 0.5.0 (alertedsnake):
 ---------------------
 

@@ -41,7 +41,7 @@ requirements = [
 
 setup(
     name                = 'packagetracker',
-    version             = '0.5.0',
+    version             = '0.5.1',
     author              = "Michael Stella",
     author_email        = "michael@thismetalsky.org",
     license             = "GPL",
