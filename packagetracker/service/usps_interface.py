@@ -64,6 +64,7 @@ class USPSInterface(BaseInterface):
         ##
         num = self.cleanup_number(num)
         return (
+            (num.isdigit() and len(num) == 26) or
             (num.isdigit() and len(num) == 22) or
             (num.isdigit() and len(num) == 10) or
             (
