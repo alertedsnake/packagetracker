@@ -1,5 +1,4 @@
 import logging
-import json
 
 from fedex.config import FedexConfig
 from fedex.base_service import FedexError
@@ -178,7 +177,7 @@ class FedexInterface(BaseInterface):
                             e.Address.StateOrProvinceCode,
                             e.Address.CountryCode,
                             ))
-        except:
+        except Exception:
             return None
 
 
