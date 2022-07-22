@@ -1,6 +1,13 @@
 Changelog
 ==================
 
+0.6.0b1 (alertedsnake):
+-----------------------
+
+* Add type hints
+* Return information web link for each package - currently using hardcoded
+  links, which are probably not stable.
+
 0.5.1 (alertedsnake):
 ---------------------
 

@@ -27,6 +27,7 @@ ACTIVITY_STATUS_TYPE = {
     'P': 'Pickup',
     'M': 'Manifest Pickup',
 }
+LINKROOT = "https://www.ups.com/track?loc=en_US&requester=QUIC&tracknum={tracknum}/trackdetails"
 
 log = logging.getLogger()
 
@@ -275,7 +276,9 @@ class UPSInterface(BaseInterface):
             location        = last_location,
             delivery_detail = delivery_detail,
             service         = service_description,
+            link            = LINKROOT.format(tracknum = tracking_number),
         )
+
 
         # add a single event, UPS doesn't seem to support multiple?
 

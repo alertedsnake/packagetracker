@@ -1,3 +1,5 @@
+import datetime
+import typing
 
 DATE_FORMAT = "%Y-%m-%d %H:%M"
 
@@ -7,16 +9,25 @@ class TrackingInfo(dict):
     Generic tracking information object returned by a tracking request
 
     Args:
-        tracking_number (str):    the carrier tracking number
-        delivery_date (datetime): date the item was delivered, None if not yet delivered
-        status (str):             last available status
-        last_update (datetime):   timestamp of the last update
-        location (str):           location of the last update
-        delivery_datail (str):    details about the delivery
-        service (str):            description of the carrier's service used
+        tracking_number:    the carrier tracking number
+        delivery_date:      date the item was delivered, None if not yet delivered
+        status:             last available status
+        last_update:        timestamp of the last update
+        location:           location of the last update
+        delivery_datail:    details about the delivery
+        service:            description of the carrier's service used
+        link:               a link to the carrier's detail page
     """
 
-    def __init__(self, tracking_number, delivery_date, status, last_update, location=None, delivery_detail=None, service=None):
+    def __init__(self,
+                 tracking_number:   str,
+                 delivery_date:     datetime.datetime,
+                 status:            str,
+                 last_update:       datetime.datetime,
+                 location:          typing.Optional[str] = None,
+                 delivery_detail:   typing.Optional[str] = None,
+                 service:           typing.Optional[str] = None,
+                 link:              typing.Optional[str] = None):
 
         self.events = []
 
@@ -24,6 +35,7 @@ class TrackingInfo(dict):
         self._delivery_date = delivery_date
         self.status = status
         self.last_update = last_update
+        self.link = link
 
         # last known location
         self.location = location

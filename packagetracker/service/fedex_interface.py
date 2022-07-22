@@ -32,6 +32,8 @@ TEST_NUMBERS = (
     '070358180009382',
 )
 
+LINKROOT = "https://www.fedex.com/fedextrack/?trknbr={tracknum}"
+
 
 class FedexInterface(BaseInterface):
     """
@@ -155,6 +157,7 @@ class FedexInterface(BaseInterface):
                     delivery_date   = delivery_date,
                     delivery_detail = delivery_detail,
                     service         = rsp.Service.Type,
+                    link            = LINKROOT.format(tracknum = tracking_number),
                 )
 
         # now add the events
