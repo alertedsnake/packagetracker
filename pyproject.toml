@@ -1,0 +1,33 @@
+[build-system]
+requires = [
+    "setuptools>=65",
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name            = "packagetracker"
+version         = "0.6.0"
+authors         = [{ name = "Michael Stella", email = "michael@thismetalsky.org"}]
+license         = { text = "GPL"}
+description     = "Track packages."
+requires-python = ">=3.6"
+classifiers     = [
+    "Development Status :: 4 - Beta",
+    "License :: OSI Approved :: GNU General Public License (GPL)",
+    "Intended Audience :: Developers",
+    "Natural Language :: English",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3 :: Only",
+]
+dependencies = [
+    'fedex',
+    'requests',
+]
+
+[project.urls]
+homepage = "http://github.com/alertedsnake/packagetracker"
+
+[tool.pytest.ini_options]
+minversion  = "6.0"
+testpaths   = ["tests"]
+addopts     = "-v"

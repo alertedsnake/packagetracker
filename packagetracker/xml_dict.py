@@ -106,4 +106,3 @@ def nodeToDict(node):
             dic.update({n.nodeName: text})
 
     return dic
-

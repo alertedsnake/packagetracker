@@ -1,4 +1,4 @@
-TAG=$(shell head CHANGELOG.rst | grep -e '^[0-9]' | head -n 1)
+TAG=$(shell awk '/^[0-9]/ {print $$1; exit }' CHANGELOG.rst)
 
 all: build
 
@@ -8,10 +8,14 @@ ifndef VIRTUAL_ENV
 endif
 
 build: venv_test
-	@python ./setup.py build
+	@python -m build
+
+test:
+	@pip install -U nox
+	nox
 
 # generate the docs
 docs: venv_test build
 	@pip install sphinx sphinx_rtd_theme
-	@python ./setup.py build_sphinx
+	@sphinx-build -j auto docs build/sphinx/html
 

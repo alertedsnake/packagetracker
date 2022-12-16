@@ -1,6 +1,6 @@
 import logging
 import requests
-from six.moves.urllib_parse import quote as urlquote
+from urllib.parse import quote as urlquote
 from datetime import datetime
 
 from ..data         import TrackingInfo
@@ -83,10 +83,10 @@ class USPSInterface(BaseInterface):
             bool
         """
         if not self.identify(num):
-            log.debug("Number {} is not a USPS number!".format(num))
+            log.debug("Number %s is not a USPS number!", num)
             return False
 
-        log.debug("Validating USPS {}".format(num))
+        log.debug("Validating USPS %s", num)
 
         num = self.cleanup_number(num)
 
@@ -94,7 +94,7 @@ class USPSInterface(BaseInterface):
         if (num.isdigit() and len(num) == 22):
             checksum = calculate_checksum(num)
             test = int(num[-1])
-            log.debug("USPS {} checksum: {}, should be {}".format(num, checksum, test))
+            log.debug("USPS %s checksum: %s, should be %s", num, checksum, test)
             return (checksum == test)
 
         return True
@@ -112,7 +112,7 @@ class USPSInterface(BaseInterface):
             TrackFailed
         """
         if not self.validate(num):
-            log.debug("Invalid tracking number: {}".format(num))
+            log.debug("Invalid tracking number: %s", num)
             raise InvalidTrackingNumber(num)
 
         resp = self._send_request(num)
@@ -208,14 +208,16 @@ class USPSInterface(BaseInterface):
         """Returns a datetime object for the given node's
         <EventTime> and <EventDate> elements"""
 
-        # in some cases, there's no time, like in
-        # "shipping info received"
-        if not node['EventTime']:
+        if 'EventTime' in node and 'EventDate' in node:
+            return datetime.combine(
+                        datetime.strptime(node['EventDate'], '%B %d, %Y').date(),
+                        datetime.strptime(node['EventTime'], '%I:%M %p').time())
+
+        # in some cases, there's no time, like in "shipping info received"
+        elif 'EventDate' in node:
             return datetime.strptime(node['EventDate'], '%B %d, %Y').date()
 
-        return datetime.combine(
-                    datetime.strptime(node['EventDate'], '%B %d, %Y').date(),
-                    datetime.strptime(node['EventTime'], '%I:%M %p').time())
+        # in some cases... nothing!
 
 
     def _getTrackingLocation(self, node):
@@ -244,4 +246,3 @@ def calculate_checksum(num):
     odd = sum(map(int, num[-3::-2]))
     checksum = even * 3 + odd
     return (10 - (checksum % 10)) % 10
-

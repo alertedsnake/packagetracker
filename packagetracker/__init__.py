@@ -52,7 +52,7 @@ The default location for this file is ~/.config/packagetrack.
 import logging
 import os.path
 from pkg_resources            import get_distribution, DistributionNotFound
-from six.moves.configparser   import ConfigParser
+from configparser             import ConfigParser
 
 from .service.fedex_interface import FedexInterface
 from .service.ups_interface   import UPSInterface
@@ -113,7 +113,7 @@ class PackageTracker:
             interface (obj): subclass of BaseInterface
         """
 
-        log.debug("Registered interface {}".format(shipper))
+        log.debug("Registered interface %s", shipper)
         self._interfaces[shipper] = interface
 
 
@@ -139,7 +139,7 @@ class PackageTracker:
         return self._interfaces.get(key)
 
 
-class Package():
+class Package:
     """
     A package to be tracked.
 
@@ -158,7 +158,7 @@ class Package():
         self.iface = None
 
         for shipper, iface in parent.interfaces:
-            log.debug("{}: Testing shipper {}".format(tracking_number, shipper))
+            log.debug("%s: Testing shipper %s", tracking_number, shipper)
 
             if iface.identify(self.tracking_number):
                 self.shipper = shipper
@@ -168,7 +168,7 @@ class Package():
         if not self.iface or not self.shipper:
             raise UnsupportedShipper()
 
-        log.debug("{}: shipper is {}".format(tracking_number, self.shipper))
+        log.debug("%s: shipper is %s", tracking_number, self.shipper)
 
 
     def track(self):

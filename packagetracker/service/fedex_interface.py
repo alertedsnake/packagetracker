@@ -231,22 +231,22 @@ class FedexInterface(BaseInterface):
         """
 
         if len(num) == 12:
-            log.debug(f"{num} is express")
+            log.debug("%s is express", num)
             return self._validate_express(num)
 
         elif (len(num) == 15):
-            log.debug(f"{num} is ground96")
+            log.debug("%s is ground96", num)
             return self._validate_ground96(num)
 
         elif (len(num) == 22) and num.startswith('96'):
-            log.debug(f"{num} is ground96 #2")
+            log.debug("%s is ground96 #2", num)
             return self._validate_ground96(num)
 
         elif (len(num) == 20) and num.startswith('00'):
-            log.debug(f"{num} is ssc18")
+            log.debug("%s is ssc18", num)
             return self._validate_ssc18(num)
 
-        log.debug(f"{num} - can't validate?")
+        log.debug("%s - can't validate?", num)
         return False
 
 
@@ -278,7 +278,7 @@ class FedexInterface(BaseInterface):
         """
         # Per documentation, test numbers have invalid checksums!
         if self.testing and num in TEST_NUMBERS:
-            log.info("Tracking number {} is a test number, skipping check".format(num))
+            log.info("Tracking number %s is a test number, skipping check", num)
             return True
 
         rev = num[::-1]
@@ -294,7 +294,7 @@ class FedexInterface(BaseInterface):
         checksum = 10 - ((eventotal * 3 + oddtotal) % 10)
         test = int(num[-1:])
         # compare with the checksum digit, which is the last digit
-        log.debug("ground96 {}: checksum: {}, should be {}".format(num, checksum, test))
+        log.debug("ground96 %s: checksum: %s should be %s", num, checksum, test)
         return (test == checksum)
 
 
@@ -310,7 +310,7 @@ class FedexInterface(BaseInterface):
         """
         # Per documentation, test numbers have invalid checksums!
         if self.testing and num in TEST_NUMBERS:
-            log.info("Tracking number {} is a test number, skipping check".format(num))
+            log.info("Tracking number %s is a test number, skipping check", num)
             return True
 
         rev = num[::-1]
@@ -340,7 +340,7 @@ class FedexInterface(BaseInterface):
         """
         # Per documentation, test numbers have invalid checksums!
         if self.testing and num in TEST_NUMBERS:
-            log.info("Tracking number {} is a test number, skipping check".format(num))
+            log.info("Tracking number %s is a test number, skipping check", num)
             return True
 
         basenum = num[0:10]
@@ -365,4 +365,3 @@ class FedexInterface(BaseInterface):
 
         # compare with the checksum digit, which is the last digit
         return check == int(num[-1:])
-

@@ -9,4 +9,3 @@ class InvalidTrackingNumber(Exception):
 
 class UnsupportedShipper(Exception):
     pass
-

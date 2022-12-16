@@ -88,20 +88,20 @@ class UPSInterface(BaseInterface):
         """
 
         if not self.identify(num):
-            log.debug("Number {} is not a UPS number!".format(num))
+            log.debug("Number %s is not a UPS number!", num)
             return False
 
         num = self.cleanup_number(num)
-        log.debug("Validating UPS {}".format(num))
+        log.debug("Validating UPS %s", num)
 
         # Per documentation, test numbers have invalid checksums!
         if self.testing and num in TEST_NUMBERS:
-            log.info("Tracking number {} is a test number, skipping check".format(num))
+            log.info("Tracking number %s is a test number, skipping check", num)
             return True
 
         checksum = calculate_checksum(num)
         test = int(num[-1:])
-        log.debug("UPS {} checksum: {}, should be {}".format(num, checksum, test))
+        log.debug("UPS %s checksum: %s, should be %s", num, checksum, test)
         return (test == checksum)
 
 
@@ -146,13 +146,13 @@ class UPSInterface(BaseInterface):
         # make the tracking request
 
         body = self._build_request(tracking_number)
-        log.debug('Request: {}'.format(json.dumps(body, indent=2)))
+        log.debug('Request: %s', json.dumps(body, indent=2))
 
         headers = {
             'Content-Type': 'application/json',
         }
         resp = requests.post(self.api_url, data=json.dumps(body), headers=headers)
-        log.debug('Response: {}'.format(resp.json()))
+        log.debug('Response: %s', resp.json())
         data = resp.json()
 
         # check for fatal errors now
@@ -169,9 +169,7 @@ class UPSInterface(BaseInterface):
         error_code = error_detail['PrimaryErrorCode']['Code']
         error_msg = error_detail['PrimaryErrorCode']['Description']
 
-        log.error("Track failed: {code} {description}".format(
-            code = error_code,
-            description = error_msg))
+        log.error("Track failed: %s %s", error_code, error_msg)
 
         # if there's an exception specifically configured for this code,
         # use it, otherwise just use the default TrackFailed
@@ -319,7 +317,7 @@ class UPSInterface(BaseInterface):
         """
 
         if not self.validate(num):
-            log.debug("Invalid tracking number: {}".format(num))
+            log.debug("Invalid tracking number: %s", num)
             raise InvalidTrackingNumber(num)
 
         resp = self._send_request(num)
@@ -357,4 +355,3 @@ def calculate_checksum(num):
         checksum = 10 - checksum
 
     return checksum
-

@@ -7,6 +7,8 @@ Changelog
 * Add type hints
 * Return information web link for each package - currently using hardcoded
   links, which are probably not stable.
+* Allow for USPS results with no date or time, not sure why this happens.
+* Switch to pyproject.toml
 
 0.5.1 (alertedsnake):
 ---------------------
