@@ -3,7 +3,12 @@ import nox
 
 def all_sessions(session):
     session.install("-U", "pip")
-    session.install(".[tests]")
+    session.install(
+        'pytest',
+        'git+https://github.com/python-fedex-devs/python-fedex.git',
+        'requests',
+        '.',
+    )
     session.run("pytest")
 
 

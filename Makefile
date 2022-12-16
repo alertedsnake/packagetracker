@@ -7,12 +7,15 @@ ifndef VIRTUAL_ENV
 	$(error Please activate a virtualenv)
 endif
 
+install_deps:
+	@pip install -U pip
+	@pip install build pytest nox
+
 build: venv_test
 	@python -m build
 
 test:
-	@pip install -U nox
-	nox
+	@nox
 
 # generate the docs
 docs: venv_test build

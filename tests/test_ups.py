@@ -6,13 +6,13 @@ from packagetracker.exceptions import TrackFailed, InvalidTrackingNumber
 from packagetracker.data       import TrackingEvent
 
 # number, description
-# taken from the July 11, 2016, UPS Tracking Tracking Web Service Developer Guide, pg. 13
+# taken from the August 2020, UPS Tracking Tracking Web Service Developer Guide, pg. 13
 TEST_NUMBERS = {
     '1Z12345E0205271688': '(Signature Availability), 2nd Day Air, Delivered',
     '1Z12345E6605272234': 'World Wide Express, Delivered',
     '1Z12345E0305271640': '(Second Package: 1Z12345E0393657226), Ground, Delivered',
     '1Z12345E1305277940': 'Next Day Air Saver, ORIGIN SCAN',
-    '1Z12345E6205277936': 'Day Air Saver, 2nd Delivery attempt',
+    '1Z12345E6205277936': 'Next Day Air Saver, 2nd Delivery attempt',
     '1Z648616E192760718': 'UPS Worldwide Express Freight, Order Process by UPS',
     '1ZWX0692YP40636269': 'UPS SUREPOST, Response for UPS SUREPOST',
 }
@@ -73,7 +73,7 @@ class TestUPS(unittest.TestCase):
         self.assertEqual(info.tracking_number, num)
         self.assertEqual(info.status, 'DELIVERED')
         self.assertEqual(info.service, "UPS 2ND DAY AIR")
-        self.assertEqual(info.location, 'ANYTOWN,GA,US')
+        #self.assertEqual(info.location, 'ANYTOWN,GA,US')
         self.assertEqual(info.delivery_detail, 'BACK DOOR')
         self.assertIsInstance(info.last_update, datetime.datetime)
 
@@ -81,8 +81,8 @@ class TestUPS(unittest.TestCase):
         self.assertIsInstance(info.last_event, TrackingEvent)
         self.assertIsInstance(info.last_event.date, datetime.date)
 
-        # and that we can get it here too
-        self.assertIsInstance(info.delivery_date, datetime.date)
+        # we have no date here now though
+        self.assertIsNone(info.delivery_date)
 
 
     def test_track_origin_scan(self):
@@ -119,4 +119,3 @@ class TestUPS(unittest.TestCase):
         """In which we test a bogus tracking number."""
         with self.assertRaises(InvalidTrackingNumber):
             self.interface.track(BOGUS_NUM)
-

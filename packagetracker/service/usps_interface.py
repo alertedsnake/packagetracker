@@ -208,13 +208,15 @@ class USPSInterface(BaseInterface):
         """Returns a datetime object for the given node's
         <EventTime> and <EventDate> elements"""
 
-        if 'EventTime' in node and 'EventDate' in node:
+        print(node)
+
+        if node.get('EventTime') and node.get('EventDate'):
             return datetime.combine(
                         datetime.strptime(node['EventDate'], '%B %d, %Y').date(),
                         datetime.strptime(node['EventTime'], '%I:%M %p').time())
 
         # in some cases, there's no time, like in "shipping info received"
-        elif 'EventDate' in node:
+        elif node.get('EventDate'):
             return datetime.strptime(node['EventDate'], '%B %d, %Y').date()
 
         # in some cases... nothing!
