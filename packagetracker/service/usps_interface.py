@@ -208,8 +208,6 @@ class USPSInterface(BaseInterface):
         """Returns a datetime object for the given node's
         <EventTime> and <EventDate> elements"""
 
-        print(node)
-
         if node.get('EventTime') and node.get('EventDate'):
             return datetime.combine(
                         datetime.strptime(node['EventDate'], '%B %d, %Y').date(),
