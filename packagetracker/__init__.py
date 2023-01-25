@@ -54,6 +54,7 @@ import os.path
 from pkg_resources            import get_distribution, DistributionNotFound
 from configparser             import ConfigParser
 
+from .service.dhl_interface   import DHLInterface
 from .service.fedex_interface import FedexInterface
 from .service.ups_interface   import UPSInterface
 from .service.usps_interface  import USPSInterface
@@ -101,9 +102,10 @@ class PackageTracker:
 
         # register the interfaces
         self._interfaces = {}
+        self.register_interface('DHL', DHLInterface(config=self.config, testing=testing))
+        self.register_interface('FedEx', FedexInterface(config=self.config, testing=testing))
         self.register_interface('UPS', UPSInterface(config=self.config, testing=testing))
         self.register_interface('USPS', USPSInterface(config=self.config, testing=testing))
-        self.register_interface('FedEx', FedexInterface(config=self.config, testing=testing))
 
 
     def register_interface(self, shipper, interface):
