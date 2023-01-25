@@ -4,7 +4,7 @@ packagetracker - Track packages
 :Authors:
     Michael Stella (alertedsnake)
 
-:Version: 0.5
+:Version: 0.6.1
 
 This library tracks packages.
 
@@ -69,15 +69,9 @@ For USPS, the optional argument 'server' can be set to 'test' or 'production'.
 Status
 =======
 
-Currently the UPS and USPS interfaces work... mostly well.  I'm sure there are
-weird edge cases everywhere, there's a lot of documentation to read, not all of
-it good.
-
-The FedEx interface is a little broken, I'm not sure if it's the
-`python-fedex`_ that isn't fetching the right information from the API, or the
-API just not returning useful tracking, but right now, you get basically
-nothing.
-
+Currently the UPS, USPS, and FedEx interfaces work... mostly well.  I'm sure
+there are weird edge cases everywhere, there's a lot of documentation to read,
+not all of it good.
 
 License
 =======
