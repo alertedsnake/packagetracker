@@ -5,7 +5,7 @@ def all_sessions(session):
     session.install("-U", "pip")
     session.install(
         'pytest',
-        'git+https://github.com/python-fedex-devs/python-fedex.git',
+        'git+https://github.com/Mobelux/python-fedex.git',
         'requests',
         '.',
     )

@@ -20,8 +20,8 @@ classifiers     = [
     "Programming Language :: Python :: 3 :: Only",
 ]
 dependencies = [
-    # using the github version because fixes have not been released
-    'fedex @ git+https://github.com/python-fedex-devs/python-fedex.git',
+    # using this github version because fixes have not been released
+    'fedex @ git+https://github.com/Mobelux/python-fedex.git',
     'requests',
 ]
 

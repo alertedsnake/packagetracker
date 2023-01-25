@@ -1,8 +1,13 @@
 Changelog
 ==================
 
-0.6.0 (alertedsnake):
----------------------
+0.6.1 (alertedsnake)
+--------------------
+
+* Switching to an actually-maintained version of ``python-fedex``
+
+0.6.0 (alertedsnake)
+--------------------
 
 * Add type hints
 * Return information web link for each package - currently using hardcoded
@@ -10,15 +15,15 @@ Changelog
 * Allow for USPS results with no date or time, not sure why this happens.
 * Switch to pyproject.toml
 
-0.5.1 (alertedsnake):
----------------------
+0.5.1 (alertedsnake)
+--------------------
 
 * Bugfix typo in date handling
 * Bugfix location handling in UPS 'M' or 'P' types, which have no location
 * Remove some old Python2.7 stuff
 
-0.5.0 (alertedsnake):
----------------------
+0.5.0 (alertedsnake)
+--------------------
 
 A complete reworking of `packagetrack`_ with the following goals:
 
