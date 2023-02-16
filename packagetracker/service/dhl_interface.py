@@ -1,4 +1,3 @@
-import json
 import logging
 import requests
 from datetime import datetime
@@ -14,7 +13,7 @@ log = logging.getLogger()
 
 
 class DHLClient(requests.sessions.Session):
-    def __ini__(self, apikey: str, *args, **kwargs):
+    def __init__(self, apikey: str, *args, **kwargs):
 
         super().__init__(*args, **kwargs)
         self.headers.update({
@@ -30,7 +29,9 @@ class DHLInterface(BaseInterface):
 
     _api_urls = {
         "production": "https://api-eu.dhl.com/track/shipments",
-        "testing":    "https://api-test.dhl.com/track/shipments",
+        "test":       "https://api-eu.dhl.com/track/shipments",
+        # this is valid but apparently I can't access it?
+        #"test":       "https://api-test.dhl.com/track/shipments",
     }
 
     def __init__(self, *args, **kwargs):
@@ -70,27 +71,56 @@ class DHLInterface(BaseInterface):
         return True
 
 
-    def ._parse_response(self, resp, num):
-        data = resp.json()["shipments"][0]
+    def _parse_response(self, resp, num):
+        data = resp.json()
 
-        location = data["status"]["location"]["address"]
-        locstring = ",".join((
-            location["addressLocality"],
-            location["countryCode"],
-        )
+        # test errors
+        if 'status' in data:
+            log.error("Track failed: %s %s", data['status'], data['detail'])
+
+            if data['status'] == 404:
+                raise InvalidTrackingNumber(data.get('detail'))
+            if data['status'] == 401:
+                raise TrackFailed(data.get('detail'))
+
+        # we only ever have one shipment here
+        shipment = data["shipments"][0]
+
+        # status:
+        # ["pre-transit","transit","delivered","failure","unknown"]
+
+        locstring = self._format_location(
+            shipment["status"]["location"]["address"])
+
+        # if delivered, use the last status as the delivery date
+        if shipment["status"]["status"] == 'delivered':
+            delivery_date = shipment["status"]["timestamp"]
+        else:
+            delivery_date = None
 
         trackinfo = TrackingInfo(
-            tracking_number = num,
-            last_update     = data["shipments"["id"],
-            delivery_date   = data["status"]["timestamp"],
-            status          = data["status"]["status"],
+            tracking_number = shipment["id"],
+            last_update     = datetime.strptime(
+                shipment["status"]["timestamp"], "%Y-%m-%dT%H:%M:%S").time(),
+            status          = shipment["status"]["status"],
             location        = locstring,
-            delivery_detail = data["status"]["remark"],
-            service         = service_description,
+            delivery_detail = shipment["status"].get("description"),
+            delivery_date   = delivery_date,
+            service         = shipment["service"],
             link            = "foo",
         )
 
         return trackinfo
+
+
+    def _format_location(self, data):
+        out = data["addressLocality"]
+
+        if "countryCode" in data:
+            out = ",".join((out, data["countryCode"]))
+
+        return out
+
 
     def track(self, num):
         """
