@@ -31,4 +31,4 @@ homepage = "http://github.com/alertedsnake/packagetracker"
 [tool.pytest.ini_options]
 minversion  = "6.0"
 testpaths   = ["tests"]
-addopts     = "-v"
+addopts     = "-v" # --log-cli-level=DEBUG"

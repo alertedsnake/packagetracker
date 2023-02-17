@@ -1,23 +1,12 @@
 import datetime
 import unittest
+from parameterized import parameterized
 
 from packagetracker            import PackageTracker
 from packagetracker.exceptions import TrackFailed, InvalidTrackingNumber
 from packagetracker.data       import TrackingEvent
 
-# number, description
-# taken from the August 2020, UPS Tracking Tracking Web Service Developer Guide, pg. 13
-TEST_NUMBERS = {
-    '1Z12345E0205271688': '(Signature Availability), 2nd Day Air, Delivered',
-    '1Z12345E6605272234': 'World Wide Express, Delivered',
-    '1Z12345E0305271640': '(Second Package: 1Z12345E0393657226), Ground, Delivered',
-    '1Z12345E1305277940': 'Next Day Air Saver, ORIGIN SCAN',
-    '1Z12345E6205277936': 'Next Day Air Saver, 2nd Delivery attempt',
-    '1Z648616E192760718': 'UPS Worldwide Express Freight, Order Process by UPS',
-    '1ZWX0692YP40636269': 'UPS SUREPOST, Response for UPS SUREPOST',
-}
-FAIL_NUMBER = '1Z12345E1505270452'  # No Tracking Information Available
-BOGUS_NUM = '1Z12345E020527079'
+from .data import UPS_TEST_NUMBERS, UPS_FAIL_NUMBER, UPS_BOGUS_NUMBER
 
 
 class TestUPS(unittest.TestCase):
@@ -28,36 +17,25 @@ class TestUPS(unittest.TestCase):
 
 
     def test_ups_url(self):
-        num = list(TEST_NUMBERS.keys())[0]
+        num = list(UPS_TEST_NUMBERS.keys())[0]
         url = self.tracker.package(num).url()
         assert num in url
         assert url.startswith('http')
 
 
-    def test_identify(self):
-        # test all good ones
-        for num in TEST_NUMBERS.keys():
-            assert self.interface.identify(num)
+    @parameterized.expand(UPS_TEST_NUMBERS.keys())
+    def test_good_numbers(self, num):
+        assert self.interface.identify(num)
+        assert self.interface.validate(num)
+        p = self.tracker.package(num)
+        self.assertEqual(p.shipper, 'ups')
 
-        # test the bad one
-        assert not self.interface.identify(BOGUS_NUM)
-
-
-    def test_validate_ups(self):
-        # test all good ones
-        for num in TEST_NUMBERS.keys():
-            assert self.interface.validate(num)
-
-        # and the bad one
-        assert not self.interface.validate(BOGUS_NUM)
-
-
-    def test_create_package(self):
-        for num in TEST_NUMBERS.keys():
-            self.tracker.package(num)
+    def test_bad_number(self):
+        assert not self.interface.identify(UPS_BOGUS_NUMBER)
+        assert not self.interface.validate(UPS_BOGUS_NUMBER)
 
         with self.assertRaises(InvalidTrackingNumber):
-            self.interface.track(BOGUS_NUM)
+            self.interface.track(UPS_BOGUS_NUMBER)
 
 
     def test_track_delivered(self):
@@ -110,7 +88,7 @@ class TestUPS(unittest.TestCase):
         if not self.tracker.config.has_section('UPS'):
             return self.skipTest("No UPS config, skipping tests")
 
-        p = self.tracker.package(FAIL_NUMBER)
+        p = self.tracker.package(UPS_FAIL_NUMBER)
         with self.assertRaises(TrackFailed):
             p.track()
 
@@ -118,4 +96,4 @@ class TestUPS(unittest.TestCase):
     def test_track_bogus_num(self):
         """In which we test a bogus tracking number."""
         with self.assertRaises(InvalidTrackingNumber):
-            self.interface.track(BOGUS_NUM)
+            self.interface.track(UPS_BOGUS_NUMBER)

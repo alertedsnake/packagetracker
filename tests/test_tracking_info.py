@@ -17,4 +17,3 @@ class TestTrackingInfo(unittest.TestCase):
         assert now.strftime(DATE_FORMAT) in s
         assert str(today) in s
         assert 'IN TRANSIT' in s
-

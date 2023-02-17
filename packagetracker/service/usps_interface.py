@@ -55,23 +55,25 @@ class USPSInterface(BaseInterface):
         Returns:
             bool: true if this service can track this package
         """
-        ##
-        ## TODO: verify this:
-        ## Apparently USPS uses 22-digit numbers for the *not-trackable*
-        ## delivery confirmation numbers.
-        ##
-        ## Actual trackable numbers are 13-characters.
-        ##
+        # source: USPS publication 199
+        #
+        # 9202 = signature confirmation
+        # 9205 = priority mail
+        # 9270 = priority express
+        # 9400 = classic USPS
+        # 9407 = certified mail
+        # 9408 = registered mail
+        #
+
         num = self.cleanup_number(num)
-        return (
-            (num.isdigit() and len(num) == 26) or
-            (num.isdigit() and len(num) == 22) or
-            (num.isdigit() and len(num) == 10) or
-            (
-                len(num) == 13 and
-                num[0:2].isalpha() and
-                num[2:9].isdigit() and
-                num[11:13].isalpha()
+
+        return ((num.isdigit() and len(num) == 26 and num[0] == '9')
+            or (num.isdigit() and len(num) == 22 and num[0] == '9')
+            or (num.isdigit() and len(num) == 10)
+            or (len(num) == 13
+                and num[0:2].isalpha()
+                and num[2:9].isdigit()
+                and num[11:13].isalpha()
             )
         )
 

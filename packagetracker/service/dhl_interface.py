@@ -1,4 +1,5 @@
 import logging
+import re
 import requests
 from datetime import datetime
 
@@ -53,22 +54,46 @@ class DHLInterface(BaseInterface):
             num (str): Tracking number
 
         Returns:
-            bool: true if the given number is a UPS tracking number.
+            bool: true if the given number is a tracking number.
         """
-        return True
+        # https://www.easyship.com/blog/dhl-tracking
+
+        return self.validate(num)
 
 
     def validate(self, num):
         """
-        Validate this tracking number, verifies its checksum.
+        Validate this tracking number.
 
         Args:
             num (str): tracking number
 
         Returns:
-            bool: True if this is a valid UPS tracking number.
+            bool: True if this is a valid tracking number.
         """
-        return True
+        if len(num) == 10:
+            # DHL Express
+            if num.startswith("000") and num.isdigit():
+                return True
+
+            # DHL Express - doesn't catch "a similar variation"
+            # as the docs say, whatever that means
+            if m := re.match(r'^(?:JJD01|JJD00|JVGL)(.+)$', num):
+                if m.group(1).isdigit():
+                    return True
+
+            # DHL Parcel
+            if m := re.match(r'^(?:3S|JVGL|JJD)(.+)$', num):
+                if m.group(1).isdigit():
+                    return True
+
+        # DHL eCommerce - doesn't catch the one which starts
+        # with "up to 5 letters" because how do I do that sanely
+        if (len(num) >= 10 and len(num) <= 39
+                and re.match(r'^(?:GM|LX|RX)', num)):
+            return True
+
+        return False
 
 
     def _parse_response(self, resp, num):

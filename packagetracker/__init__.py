@@ -51,6 +51,7 @@ The default location for this file is ~/.config/packagetrack.
 """
 import logging
 import os.path
+import typing
 from pkg_resources            import get_distribution, DistributionNotFound
 from configparser             import ConfigParser
 
@@ -102,10 +103,10 @@ class PackageTracker:
 
         # register the interfaces
         self._interfaces = {}
-        self.register_interface('DHL', DHLInterface(config=self.config, testing=testing))
-        self.register_interface('FedEx', FedexInterface(config=self.config, testing=testing))
         self.register_interface('UPS', UPSInterface(config=self.config, testing=testing))
         self.register_interface('USPS', USPSInterface(config=self.config, testing=testing))
+        self.register_interface('DHL', DHLInterface(config=self.config, testing=testing))
+        self.register_interface('FedEx', FedexInterface(config=self.config, testing=testing))
 
 
     def register_interface(self, shipper, interface):
@@ -116,10 +117,10 @@ class PackageTracker:
         """
 
         log.debug("Registered interface %s", shipper)
-        self._interfaces[shipper] = interface
+        self._interfaces[shipper.lower()] = interface
 
 
-    def package(self, tracking_number):
+    def package(self, tracking_number, service: str = None):
         """
         Returns a Package object given the tracking number.
 
@@ -130,7 +131,7 @@ class PackageTracker:
             Package
         """
 
-        return Package(self, tracking_number)
+        return Package(self, tracking_number, service = service)
 
 
     @property
@@ -138,7 +139,7 @@ class PackageTracker:
         return self._interfaces.items()
 
     def interface(self, key):
-        return self._interfaces.get(key)
+        return self._interfaces.get(key.lower())
 
 
 class Package:
@@ -150,22 +151,37 @@ class Package:
 
     Args:
         parent (PackageTracker): an instance of PackageTracker
-        tracking_number (str): the tracking number
+        tracking_number: the tracking number
 
     """
 
-    def __init__(self, parent, tracking_number):
+    def __init__(self, parent,
+                 tracking_number: str,
+                 service: typing.Optional[str] = None):
+
         self.tracking_number = tracking_number.upper().replace(' ', '')
         self.shipper = None
         self.iface = None
 
-        for shipper, iface in parent.interfaces:
-            log.debug("%s: Testing shipper %s", tracking_number, shipper)
+        # if we've provided a valid interface, no need to search for one
+        if service:
+            if parent.interface(service):
+                self.iface = parent.interface(service)
+                self.shipper = service.lower()
 
-            if iface.identify(self.tracking_number):
-                self.shipper = shipper
-                self.iface = iface
-                break
+                log.debug("%s: shipper is %s (provided)", tracking_number, self.shipper)
+            else:
+                raise UnsupportedShipper()
+
+
+        else:
+            for service, iface in parent.interfaces:
+                log.debug("%s: Testing shipper %s", tracking_number, service)
+
+                if iface.identify(self.tracking_number):
+                    self.shipper = service
+                    self.iface = iface
+                    break
 
         if not self.iface or not self.shipper:
             raise UnsupportedShipper()

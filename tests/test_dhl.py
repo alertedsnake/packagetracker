@@ -1,18 +1,16 @@
 import unittest
+from parameterized import parameterized
 
 from packagetracker            import PackageTracker
 from packagetracker.exceptions import InvalidTrackingNumber
 
-TEST_NUMBERS = {
-    '7777777770': 'transit',
-}
-
-FAIL_NUMBER = '7777777771'
+from .data import DHL_TEST_NUMBERS, DHL_FAIL_NUMBER, DHL_TEST_FORMATS
 
 
 class TestDHL(unittest.TestCase):
 
     def setUp(self):
+        super().setUp()
         self.tracker = PackageTracker(testing=True)
         self.interface = self.tracker.interface('DHL')
 
@@ -21,8 +19,8 @@ class TestDHL(unittest.TestCase):
         if not self.tracker.config.has_section('DHL'):
             return self.skipTest("No DHL config, skipping tests")
 
-        for num, status in TEST_NUMBERS.items():
-            p = self.tracker.package(num)
+        for num, status in DHL_TEST_NUMBERS.items():
+            p = self.tracker.package(num, 'DHL')
             result = p.track()
 
             self.assertEqual(result.status, status)
@@ -39,6 +37,20 @@ class TestDHL(unittest.TestCase):
         if not self.tracker.config.has_section('DHL'):
             return self.skipTest("No DHL config, skipping tests")
 
-        p = self.tracker.package(FAIL_NUMBER)
+        p = self.tracker.package(DHL_FAIL_NUMBER, 'DHL')
         with self.assertRaises(InvalidTrackingNumber):
             p.track()
+
+
+    @parameterized.expand(DHL_TEST_FORMATS)
+    def test_good_formats(self, num):
+        assert self.interface.identify(num)
+        assert self.interface.validate(num)
+        p = self.tracker.package(num, 'DHL')
+        self.assertTrue(p.validate())
+        self.assertEqual(p.shipper, 'dhl')
+
+
+    def test_bad_format(self):
+        p = self.tracker.package("thisisnotanumber", 'DHL')
+        self.assertFalse(p.validate())

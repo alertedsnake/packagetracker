@@ -1,20 +1,13 @@
 import datetime
 import pytest
 import unittest
+from parameterized import parameterized
 
 from packagetracker            import PackageTracker
 from packagetracker.exceptions import TrackFailed, InvalidTrackingNumber
 
-TEST_NUMBERS = {
-    '9400100000000000000000':               'USPS Tracking',
-    '9205500000000000000000':               'Priority Mail',
-    '82 000 000 00':                        'Global Express Guaranteed',
-    'EC 000 000 000 US':                    'Priority Mail International',
-}
-BOGUS_NUM = '9405503699300451134169'
-REAL_PACKAGES = [
-    'LM181476342CA',
-]
+from .data import USPS_TEST_NUMBERS, USPS_BOGUS_NUM, USPS_REAL_PACKAGES
+
 
 class TestUSPS(unittest.TestCase):
 
@@ -30,28 +23,20 @@ class TestUSPS(unittest.TestCase):
         assert url.startswith('http')
 
 
-    def test_identify(self):
-        for num in TEST_NUMBERS.keys():
-            print("Tracking %s", num)
-            assert self.interface.identify(num)
+    @parameterized.expand(USPS_TEST_NUMBERS.keys())
+    def test_good_numbers(self, num):
+        print(f"Tracking {num}")
+        p = self.tracker.package(num)
+        p.validate()
+        self.assertEqual(p.shipper, 'usps')
 
 
-    @pytest.mark.skip(reason="no valid numbers")
-    def test_validate(self):
-        for num in TEST_NUMBERS.keys():
-            print("Validating %s", num)
-            assert self.interface.validate(num)
-
+    def test_bogus_numbers(self):
         # this is a bad one
-        assert not self.interface.validate(BOGUS_NUM)
-
-
-    def test_create_package(self):
-        for num in TEST_NUMBERS.keys():
-            self.tracker.package(num)
+        assert not self.interface.validate(USPS_BOGUS_NUM)
 
         with self.assertRaises(InvalidTrackingNumber):
-            self.interface.track(BOGUS_NUM)
+            self.interface.track(USPS_BOGUS_NUM)
 
 
     @pytest.mark.skip(reason="no valid numbers")
@@ -62,8 +47,9 @@ class TestUSPS(unittest.TestCase):
         if not self.tracker.config.has_section('USPS'):
             return self.skipTest("No USPS config, skipping tests")
 
-        num = REAL_PACKAGES[0]
+        num = USPS_REAL_PACKAGES[0]
         p = self.tracker.package(num)
+        self.assertEqual(p.shipper, 'usps')
         info = p.track()
         self.assertEqual(info.tracking_number, num)
         self.assertEqual(info.status, 'Delivered')
@@ -73,6 +59,7 @@ class TestUSPS(unittest.TestCase):
         self.assertTrue(len(info.events) > 1)
 
 
+    @pytest.mark.skip(reason = "need a number to validate this")
     def test_track_no_information(self):
         """
         In which we test a tracking number for which there is no
@@ -91,7 +78,8 @@ class TestUSPS(unittest.TestCase):
         if not self.tracker.config.has_section('USPS'):
             return self.skipTest("No USPS config, skipping tests")
 
-        num = '7196901075600307738501'
+        num = '9196901075600307738501'
         with self.assertRaises(InvalidTrackingNumber):
             p = self.tracker.package(num)
+            self.assertEqual(p.shipper, 'usps')
             p.track()
