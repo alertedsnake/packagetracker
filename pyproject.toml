@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name            = "packagetracker"
-version         = "0.6.1"
+version         = "0.7.0a1"
 authors         = [{ name = "Michael Stella", email = "michael@thismetalsky.org"}]
 license         = { text = "GPL"}
 description     = "Track packages."

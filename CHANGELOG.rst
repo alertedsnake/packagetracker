@@ -1,6 +1,15 @@
 Changelog
 ==================
 
+0.7.0a1 (alertedsnake)
+----------------------
+
+* Implemented DHL tracking
+* Fixed USPS identification to make it stricter
+* switched to using parameterized for test cases
+* moved test data into its own file
+* confirming package identification in tests
+
 0.6.1 (alertedsnake)
 --------------------
 
