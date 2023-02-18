@@ -125,7 +125,7 @@ class DHLInterface(BaseInterface):
         trackinfo = TrackingInfo(
             tracking_number = shipment["id"],
             last_update     = datetime.strptime(
-                shipment["status"]["timestamp"], "%Y-%m-%dT%H:%M:%S").time(),
+                shipment["status"]["timestamp"], "%Y-%m-%dT%H:%M:%S"),
             status          = shipment["status"]["status"],
             location        = locstring,
             delivery_detail = shipment["status"].get("description"),
