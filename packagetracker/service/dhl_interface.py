@@ -7,8 +7,7 @@ from ..data         import TrackingInfo
 from ..exceptions   import TrackFailed, InvalidTrackingNumber
 from ..service      import BaseInterface
 
-TEST_NUMBERS = [
-]
+LINKROOT = "https://www.dhl.com/us-en/home/tracking.html?tracking-id={tracknum}&submit=1"
 
 log = logging.getLogger()
 
@@ -132,7 +131,7 @@ class DHLInterface(BaseInterface):
             delivery_detail = shipment["status"].get("description"),
             delivery_date   = delivery_date,
             service         = shipment["service"],
-            link            = "foo",
+            link            = LINKROOT.format(tracknum = num),
         )
 
         return trackinfo
