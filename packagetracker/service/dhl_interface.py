@@ -116,16 +116,18 @@ class DHLInterface(BaseInterface):
         locstring = self._format_location(
             shipment["status"]["location"]["address"])
 
+        last_update = datetime.strptime(
+            shipment["status"]["timestamp"], "%Y-%m-%dT%H:%M:%S")
+
         # if delivered, use the last status as the delivery date
         if shipment["status"]["status"] == 'delivered':
-            delivery_date = shipment["status"]["timestamp"]
+            delivery_date = last_update
         else:
             delivery_date = None
 
         trackinfo = TrackingInfo(
             tracking_number = shipment["id"],
-            last_update     = datetime.strptime(
-                shipment["status"]["timestamp"], "%Y-%m-%dT%H:%M:%S"),
+            last_update     = last_update,
             status          = shipment["status"]["status"],
             location        = locstring,
             delivery_detail = shipment["status"].get("description"),
