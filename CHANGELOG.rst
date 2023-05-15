@@ -1,6 +1,13 @@
 Changelog
 ==================
 
+0.7.0a2 (alertedsnake)
+----------------------
+
+* Added a 'guess' feature for the cases where all the number format checks don't work,
+  it'll just try them in order and return the first valid response.
+* Add a command-line you can call with ``python -m packagetrack $number``
+
 0.7.0a1 (alertedsnake)
 ----------------------
 

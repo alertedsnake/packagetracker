@@ -1,3 +1,4 @@
+# flake8: noqa: W503
 import logging
 import requests
 from urllib.parse import quote as urlquote
@@ -113,9 +114,9 @@ class USPSInterface(BaseInterface):
             InvalidTrackingNumber
             TrackFailed
         """
-        if not self.validate(num):
-            log.debug("Invalid tracking number: %s", num)
-            raise InvalidTrackingNumber(num)
+        #if not self.validate(num):
+        #    log.debug("Invalid tracking number: %s", num)
+        #    raise InvalidTrackingNumber(num)
 
         resp = self._send_request(num)
         return self._parse_response(resp, num)

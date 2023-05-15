@@ -104,7 +104,7 @@ class FedexInterface(BaseInterface):
         """Parse the track response and return a TrackingInfo object"""
 
         if hasattr(rsp, 'Notification'):
-            if rsp.Notification.Severity == 'ERROR':
+            if rsp.Notification.Severity in ('ERROR', 'FAILURE'):
                 raise TrackFailed('{}: {}'.format(
                     rsp.Notification.Code,
                     rsp.Notification.LocalizedMessage))

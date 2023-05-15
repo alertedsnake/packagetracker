@@ -120,7 +120,7 @@ class PackageTracker:
         self._interfaces[shipper.lower()] = interface
 
 
-    def package(self, tracking_number, service: str = None):
+    def package(self, tracking_number, service: str = None, guess: bool = False):
         """
         Returns a Package object given the tracking number.
 
@@ -131,7 +131,7 @@ class PackageTracker:
             Package
         """
 
-        return Package(self, tracking_number, service = service)
+        return Package(self, tracking_number, service = service, guess = guess)
 
 
     @property
@@ -157,11 +157,14 @@ class Package:
 
     def __init__(self, parent,
                  tracking_number: str,
-                 service: typing.Optional[str] = None):
+                 service: typing.Optional[str] = None,
+                 guess = False):
 
         self.tracking_number = tracking_number.upper().replace(' ', '')
         self.shipper = None
         self.iface = None
+        self.guess = guess
+        self.parent = parent
 
         # if we've provided a valid interface, no need to search for one
         if service:
@@ -183,7 +186,7 @@ class Package:
                     self.iface = iface
                     break
 
-        if not self.iface or not self.shipper:
+        if (not self.iface or not self.shipper) and not self.guess:
             raise UnsupportedShipper()
 
         log.debug("%s: shipper is %s", tracking_number, self.shipper)
@@ -191,6 +194,19 @@ class Package:
 
     def track(self):
         """Tracks the package, returning a TrackingInfo object"""
+
+        if self.guess:
+            # guess
+            for service, iface in self.parent.interfaces:
+                log.debug("%s: Guessing shipper %s", self.tracking_number, service)
+                try:
+                    resp = iface.track(self.tracking_number)
+                    if resp is not None:
+                        return resp
+                except (TrackFailed, InvalidTrackingNumber):
+                    pass
+            raise UnsupportedShipper()
+
         return self.iface.track(self.tracking_number)
 
 
