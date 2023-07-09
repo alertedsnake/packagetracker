@@ -88,8 +88,7 @@ class DHLInterface(BaseInterface):
 
         # DHL eCommerce - doesn't catch the one which starts
         # with "up to 5 letters" because how do I do that sanely
-        if (len(num) >= 10 and len(num) <= 39
-                and re.match(r'^(?:GM|LX|RX)', num)):
+        if (len(num) >= 10 and len(num) <= 39 and re.match(r'^(?:GM|LX|RX)', num)):
             return True
 
         return False
@@ -106,6 +105,9 @@ class DHLInterface(BaseInterface):
                 raise InvalidTrackingNumber(data.get('detail'))
             if data['status'] == 401:
                 raise TrackFailed(data.get('detail'))
+
+        if 'shipments' not in data:
+            raise TrackFailed('no data found')
 
         # we only ever have one shipment here
         shipment = data["shipments"][0]
